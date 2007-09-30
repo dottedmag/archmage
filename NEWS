@@ -1,0 +1,11 @@
+arCHMage 0.2
+============
+Bug fixes:
+
+* [SF #1767529] IOError exception using CHM dump option
+
+arCHMage 0.1.9
+==============
+Changes/New features:
+
+* New option - 'dump' for dumping HTML data from CHM file as Plain Text

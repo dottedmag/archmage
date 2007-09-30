@@ -1,0 +1,35 @@
+Source Tarball
+==============
+
+First unpark source tarball:
+
+  # tar xzvf archmage-0.1.9.tar.gz
+
+change directory:
+ 
+  # cd archmage-0.1.9
+
+to install arCHMage run following command:
+
+  # python setup.py install
+
+
+Debian / Ubuntu
+===============
+
+You can use prepackaged version from archive:
+
+  # apt-get install archmage
+
+if you want to use it with apache:
+
+  # apt-get install libapache-mod-python
+
+or to use it with apache2:
+ 
+ # apt-get install libapache2-mod-python
+
+To have ability to dump HTML data from CHM file as plain text:
+
+ # apt-get install lynx
+ 

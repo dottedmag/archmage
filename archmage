@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# arCHMage -- extensible reader and decompiler for files in the CHM format.
+#
+# Originally written by Eugeny Korekin <aaaz@users.sourceforge.net>
+# Significantly modified by Basil Shubin <bashu@users.sourceforge.net>
+#
+# Copyright (c) 2003 Eugeny Korekin <aaaz@users.sourceforge.net>
+# Copyright (c) 2005-2007 Basil Shubin <bashu@users.sourceforge.net>
+
+
+"""arCHMage -- extensible reader and decompiler for files in the CHM format.
+
+Usage: %(program)s [options] <chmfile> [destdir]
+Where:
+
+    -x / --extract
+        Extracts CHM file into specified directory. If destination
+        directory is ommited, than the new one will be created based
+        on name of CHM file. This options is by defaut.
+
+    -p number
+    --port=number
+        Acts as HTTP server on specified port number, so you can read
+        CHM file with your favourite browser. You can specify a directory
+        with decompressed content.
+
+    -d / --dump
+        Dump HTML data as plain text into standard output.
+
+    -V / --version
+        Print version number and exit.
+
+    -h / --help
+        Print this text and exit.
+"""
+
+import os
+import sys
+import getopt
+
+from archmod import __version__, message, error_msg
+
+from archmod.CHM import *
+
+program = sys.argv[0]
+
+EXTRACT = 1
+HTTPSERVER = 2
+DUMPHTML = 3
+
+COMMASPACE = ', '
+
+def usage(code=0, msg=''):
+	message(code, __doc__ % globals())
+	message(code, msg)
+	sys.exit(code)
+
+def file2dir(filename):
+	""" Convert filename.chm to filename_html """
+	dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
+	return dirname
+
+def parseargs():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'xdp:Vh',
+								   ['extract', 'dump', 'port=', 'version', 'help'])
+	except getopt.error, msg:
+		usage(1, msg)
+
+	class Options:
+		mode = None        # EXTRACT or HTTPSERVER or other
+		port = None        # HTTP port number
+		chmfile = None     # CHM File to view/extract
+		dirname = None     # Destination directory
+
+	options = Options()
+
+	for opt, arg in opts:
+		if opt in ('-h', '--help'):
+			usage()
+		elif opt in ('-V', '--version'):
+			message(0, __version__)
+			sys.exit(0)
+		elif opt in ('-p', '--port'):
+			if options.mode is not None:
+				usage(1, '-x and -p are mutually exclusive')
+			options.mode = HTTPSERVER
+			try:
+				options.port = int(arg)
+			except ValueError, msg:
+				usage(1, 'Invalid port number: %s' % msg)
+		elif opt in ('-x', '--extract'):
+			if options.mode is not None:
+				usage(1, '-x and -p are mutually exclusive')
+			options.mode = EXTRACT
+		elif opt in ('-d', '--dump'):
+			if options.mode is not None:
+				usage(1, '-d should be used without any other options')
+			options.mode = DUMPHTML
+		else:
+			assert False, (opt, arg)
+
+    # Sanity checks
+	if options.mode is None:
+		options.mode = EXTRACT
+
+	if not args:
+		usage(1, 'No CHM file was specified!')
+	else:
+		options.chmfile = args.pop(0)
+
+	# CHM content should be extracted
+	if options.mode == EXTRACT:
+		if not args:
+			options.dirname = file2dir(options.chmfile)
+		else:
+			options.dirname = args.pop(0)
+			
+	# Any other arguments are invalid
+	if args:
+		usage(1, 'Invalid arguments: ' + COMMASPACE.join(args))
+
+	return options
+
+
+def main():
+	options = parseargs()
+	if not os.path.exists(options.chmfile):
+		error_msg('No such file: %s' % options.chmfile)
+
+	# Check where is argument a CHM file or directory with decompressed
+	# content. Depending on results make 'source' instance of CHMFile or
+	# CHMDir class.
+	source = os.path.isfile(options.chmfile) and \
+			 CHMFile(options.chmfile) or CHMDir(options.chmfile)
+
+	if options.mode == HTTPSERVER:
+		CHMServer(source, port=options.port).run()
+	elif options.mode == DUMPHTML:
+		source.dump_html()
+	else:
+		source.extract(options.dirname)
+
+if __name__ == '__main__':
+    main()

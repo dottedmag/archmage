@@ -1,0 +1,88 @@
+About arCHMage
+==============
+
+arCHMage  is  an  extensible  reader  and  decompiler for  files  in  the  CHM
+format. This is the  format used by Microsoft HTML Help, and  is also known as
+Compiled HTML.
+
+arCHMage is written in the Python programming language and uses PyCHM - python
+bindings for CHMLib from GnoCHM project.
+
+Originally this utility  was written by Eugeny Korekin, but  since 2005 it has
+been maintained and developed by Basil Shubin.
+
+
+Features List
+=============
+
+  * Extracting CHM content
+  * Dumping HTML data from CHM file as plain text (using external tools)
+  * Running as standalone http-server
+  * Extension for Apache Web Server - mod_chm
+
+
+System Requirements
+===================
+
+arCHMage requires the following libraries:
+
+  * Python 2.3 or later
+  * PyCHM
+  * CHMLib
+
+Other (optional) dependencies:
+
+  * Lynx or ELinks - dumping HTML as plain text
+  * mod_python - Apache/Python Integration
+
+
+Installation
+============
+
+See INSTALL file for more details. 
+
+
+Simple Usage HOWTO
+==================
+
+There is three ways to use arCHMage package now:
+
+1) Extract CHM file content in to directory (directory will be created):
+
+   archmage -x <chmfile> <directory>
+   
+   Note: Decompilation will fail, if destination directory already exist.
+
+2) Dump HTML data from CHM file as plain text:
+
+   archmage -d <chmfile>
+   
+   Note: All data dumped in to standard output. To use this feature you must
+   have lynx or elinks text browser installed. See arch.conf for details.
+
+3) Run as http-server, which will publish chm file contents on specified port.
+
+   archmage -p <port> <chmfile>
+
+   Note:  You  can first  decompress  chm file  into  directory  and use  this
+   directory instead chm file, i.e: archmage -p <port> <chmdir>
+
+4) Tune your apache to publish chm file contents if there is trailing slash in
+   request to that file (you will need working mod_python for that):
+
+   Add that lines to your httpd.conf:
+
+      AddHandler python-program .chm
+      PythonHandler archmod.mod_chm
+
+   Restart apache.
+
+   Let's suppose,  you have  file sample.chm in  DocumentRoot of  your apache.
+   After that tuning  you can receive raw chm file, if  you point your browser
+   to
+
+   http://yourserver/sample.chm
+
+   or you can view chm file on the fly if you point your browser to
+
+   http://yourserver/sample.chm/ (note trailing slash)
