@@ -15,10 +15,14 @@ import mimetypes
 from HTMLParser import HTMLParser, HTMLParseError, piclose
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler 
 
-# import PyCHM bindings
-from chm import chmlib
+from archmod import message, error_msg
 
-from archmod import message
+# import PyCHM bindings
+try:
+	from chm import chmlib
+except ImportError:
+	error_msg("Error: missing module: python-chm")
+
 
 from archmod.htmltotext import htmltotext
 

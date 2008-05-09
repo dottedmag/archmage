@@ -3,6 +3,7 @@ arCHMage 0.2
 Bug fixes:
 
 * [SF #1767529] IOError exception using CHM dump option
+* [SF #1955872] import error
 
 arCHMage 0.1.9
 ==============
