@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 
 setup (name = "archmage",
        fullname = "arCHMage",
-       version = "0.1.9",
+       version = "0.1.9.1",
        description = "CHM(Compiled HTML) Decompressor",
        maintainer = "Basil Shubin",
        maintainer_email = "bashu@users.sourceforge.net",
