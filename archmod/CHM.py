@@ -26,7 +26,7 @@ except ImportError:
 
 from archmod.htmltotext import htmltotext
 
-# what config file to use - local or global?
+# what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
 if os.path.exists(user_config):
 	config = user_config
@@ -152,7 +152,7 @@ class CHMDir(object):
 			self.process_templ()
 		except OSError, error:
 			if error[0] == errno.EEXIST:
-				error_msg("Decompilation error: Directory '%s' already exists!" % dir)
+				error_msg("Error: Directory '%s' is already exists!" % dir)
 
 	def raw_dump(self, ext=['*']):
 		""" Dump CHM entries into the stdout """
@@ -320,7 +320,7 @@ class SitemapParser(HTMLParser):
 					self.parsed += ','
 				self.parsed += '\n' + indent + '['
 			if tag == 'param':
-				self.params[dict(attrs)['name']] = dict(attrs)['value']
+				self.params[str(dict(attrs)['name']).lower()] = dict(attrs)['value']
 			self.tagstack.append(tag)
 
 	def handle_endtag(self, tag):
@@ -329,41 +329,41 @@ class SitemapParser(HTMLParser):
 			if tag == 'ul':
 				self.parsed += ']'
 			if tag == 'object':
-				if not self.params.has_key('ImageNumber'):
-					self.params['ImageNumber'] = 1
-				if not self.params.has_key('Local'):
-					self.params['Local'] = ''
-				if not self.params.has_key('Name'):
-					self.params['Name'] = ''
+				if not self.params.has_key('imagenumber'):
+					self.params['imagenumber'] = 1
+				if not self.params.has_key('local'):
+					self.params['local'] = ''
+				if not self.params.has_key('name'):
+					self.params['name'] = ''
 				# use first page as deftopic
 				if not self.deftopic:
-					self.deftopic = self.params['Local'].lower()
+					self.deftopic = self.params['local'].lower()
  				# otherwise if there index.htm inside CHM file use it instead
  				#if 'index.htm' in self.params['Local'].lower():
  				#	self.deftopic = self.params['Local'].lower()
 
-				self.params['Name'] = self.params['Name'].replace('\r\n', '\\n').replace('\n', '\\n')
-				self.params['Local'] = self.params['Local'].replace('..\\', '')
+				self.params['name'] = self.params['name'].replace('\r\n', '\\n').replace('\n', '\\n')
+				self.params['local'] = self.params['local'].replace('..\\', '')
 
-				if '"' in self.params['Local']:
+				if '"' in self.params['local']:
 					lstr = "'%s'"
-					self.params['Local'] = self.params['Local'].replace("'", '\\\'')
+					self.params['local'] = self.params['local'].replace("'", '\\\'')
 				else:
 					lstr = '"%s"'
-					self.params['Local'] = self.params['Local'].replace('"', "\\\"")
+					self.params['local'] = self.params['local'].replace('"', "\\\"")
 
-				if '"' in self.params['Name']:
+				if '"' in self.params['name']:
 					nstr = "'%s'"
-					self.params['Name'] = self.params['Name'].replace("'", '\\\'')
+					self.params['name'] = self.params['name'].replace("'", '\\\'')
 				else:
 					nstr = '"%s"'
-					self.params['Name'] = self.params['Name'].replace('"', "\\\"")
+					self.params['name'] = self.params['name'].replace('"', "\\\"")
 
 				fstr = nstr + ',' + lstr + ',' + '"%s"'
 				self.parsed += fstr % (
-					self.params['Name'],
-					self.params['Local'].lower(),
-					self.params['ImageNumber'])
+					self.params['name'],
+					self.params['local'].lower(),
+					self.params['imagenumber'])
 				self.params = {}
 			if tag != 'li':
 				self.tagstack.pop(tag)
