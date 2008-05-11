@@ -129,6 +129,7 @@ def main():
 	options = parseargs()
 	if not os.path.exists(options.chmfile):
 		error_msg('No such file: %s' % options.chmfile)
+		sys.exit(1)
 
 	# Check where is argument a CHM file or directory with decompressed
 	# content. Depending on results make 'source' instance of CHMFile or
