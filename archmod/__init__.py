@@ -1,5 +1,5 @@
 __all__ = ['CHM', 'mod_chm', 'htmltotext']
-__version__ = '0.1.9.1'
+__version__ = '0.1.9.2'
 
 import sys
 
@@ -10,6 +10,8 @@ def message(code=0, msg=''):
 	if msg:
 		print >> outfp, msg
 
+def info_msg(msg=''):
+	message(0, msg)
+
 def error_msg(msg=''):
 	message(1, msg)
-	sys.exit(1)
