@@ -21,7 +21,8 @@ from archmod import message, error_msg
 try:
 	from chm import chmlib
 except ImportError:
-	error_msg("Error: missing module: python-chm")
+	error_msg("ImportError: Cannot import module: python-chm")
+	sys.exit(1)
 
 
 from archmod.htmltotext import htmltotext
@@ -152,7 +153,8 @@ class CHMDir(object):
 			self.process_templ()
 		except OSError, error:
 			if error[0] == errno.EEXIST:
-				error_msg("Error: Directory '%s' is already exists!" % dir)
+				error_msg("OSError: Directory '%s' is already exists!" % dir)
+				sys.exit(1)    
 
 	def raw_dump(self, ext=['*']):
 		""" Dump CHM entries into the stdout """
@@ -195,7 +197,8 @@ class CHMFile(CHMDir):
 		
 		chmdir = []
 		if (chmlib.chm_enumerate(chmfile, chmlib.CHM_ENUMERATE_ALL, _get_name, chmdir)) == 0:
-			error_msg('UNKNOWN ERROR: CHMLIB or PyCHM issue')
+			error_msg('UnknownError: CHMLIB or PyCHM issue')
+			sys.exit(1)
 		return chmdir
 
 	def __del__(self):
@@ -415,4 +418,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 		self.end_headers()
 
 		# get html data from CHM instance and write it into output
-		self.wfile.write(self.server.CHM.get_entry_by_name(pagename))
+		try:
+			self.wfile.write(self.server.CHM.get_entry_by_name(pagename))
+		except NameError, msg:
+			error_msg("NameError: %s" % msg)
