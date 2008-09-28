@@ -12,7 +12,7 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
 def chmtotext(input, cmd, output=sys.stdout):
-	""" Html to Text convertor """
+	""" CHM to Text convertor """
 	proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)
 	proc.stdin.write(input)
 	print >> output, proc.communicate()[0]
