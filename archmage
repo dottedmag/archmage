@@ -12,13 +12,17 @@
 
 """arCHMage -- extensible reader and decompiler for files in the CHM format.
 
-Usage: %(program)s [options] <chmfile> [destdir]
+Usage: %(program)s [options] <chmfile> [destdir|destfile]
 Where:
 
     -x / --extract
         Extracts CHM file into specified directory. If destination
         directory is ommited, than the new one will be created based
         on name of CHM file. This options is by defaut.
+        
+    -c format
+    --convert format
+        TODO: Put description here
 
     -p number
     --port=number
@@ -46,9 +50,12 @@ from archmod.CHM import *
 
 program = sys.argv[0]
 
-EXTRACT = 1
-HTTPSERVER = 2
-DUMPHTML = 3
+EXTRACT = 1		# Extract CHM content
+HTTPSERVER = 2	# Act as standalone HTTP server
+DUMPHTML = 3	# Dump CHM file as plain text
+CHM2TXT = 4		# Convert CHM file into Single Text file
+CHM2HTML = 5	# Convert CHM file into Single HTML file
+CHM2PDF = 6		# Convert CHM file into PDF Document
 
 COMMASPACE = ', '
 
@@ -61,11 +68,24 @@ def file2dir(filename):
 	""" Convert filename.chm to filename_html """
 	dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
 	return dirname
+	
+def output_file(filename, mode):
+	""" Convert filename.chm to output filename """
+	if mode == CHM2TXT:
+		file_ext = 'txt'
+	elif mode == CHM2HTML:
+		file_ext = 'html'
+	elif mode == CHM2PDF:
+		file_ext = 'pdf'
+	else:
+		file_ext = 'output'
+	output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
+	return output_filename
 
 def parseargs():
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'xdp:Vh',
-								   ['extract', 'dump', 'port=', 'version', 'help'])
+		opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
+								   ['extract', 'convert', 'dump', 'port=', 'version', 'help'])
 	except getopt.error, msg:
 		usage(1, msg)
 
@@ -73,7 +93,7 @@ def parseargs():
 		mode = None        # EXTRACT or HTTPSERVER or other
 		port = None        # HTTP port number
 		chmfile = None     # CHM File to view/extract
-		dirname = None     # Destination directory
+		output = None      # Output file or directory
 
 	options = Options()
 
@@ -91,6 +111,21 @@ def parseargs():
 				options.port = int(arg)
 			except ValueError, msg:
 				usage(1, 'Invalid port number: %s' % msg)
+		elif opt in ('-c', '--convert'):
+			if options.mode is not None:
+				usage(1, '-x, -p or -c are mutually exclusive')
+			try:
+				mode = str(arg)
+				if mode == 'text':
+					options.mode = CHM2TXT
+				elif mode == 'html':
+					options.mode = CHM2HTML
+				elif mode == 'pdf':
+					options.mode = CHM2PDF
+				else:
+					raise ValueError
+			except ValueError, msg:
+				usage(1, 'Invalid file format: %s' % mode)
 		elif opt in ('-x', '--extract'):
 			if options.mode is not None:
 				usage(1, '-x and -p are mutually exclusive')
@@ -114,9 +149,14 @@ def parseargs():
 	# CHM content should be extracted
 	if options.mode == EXTRACT:
 		if not args:
-			options.dirname = file2dir(options.chmfile)
+			options.output = file2dir(options.chmfile)
 		else:
-			options.dirname = args.pop(0)
+			options.output = args.pop(0)
+	elif options.mode in (CHM2TXT, CHM2HTML, CHM2PDF):
+		if not args:
+			options.output = output_file(options.chmfile, options.mode)
+		else:
+			options.output = args.pop(0)
 			
 	# Any other arguments are invalid
 	if args:
@@ -140,9 +180,14 @@ def main():
 	if options.mode == HTTPSERVER:
 		CHMServer(source, port=options.port).run()
 	elif options.mode == DUMPHTML:
-		source.dump_html()
-	else:
-		source.extract(options.dirname)
+		source.chm2text()
+	elif options.mode == CHM2TXT:
+		# TODO: add checking if file exists
+		source.chm2text(open(options.output, 'w'))
+	elif options.mode == CHM2HTML:
+		source.chm2html()
+	elif options.mode == EXTRACT:
+		source.extract(options.output)
 
 if __name__ == '__main__':
     main()

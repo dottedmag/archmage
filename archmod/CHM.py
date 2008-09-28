@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2003 Eugeny Korekin <aaaz@users.sourceforge.net>
-# Copyright (c) 2005-2007 Basil Shubin <bashu@users.sourceforge.net>
+# Copyright (c) 2005-2008 Basil Shubin <bashu@users.sourceforge.net>
 
 import os
 import sys
@@ -65,7 +65,7 @@ class CHMDir(object):
 			if e.lower().endswith('.hhk'):
 				self.hhk = e
 		hhclines = self.get_entry_by_name(self.hhc)
-		self.contents, self.deftopic = SitemapFile(hhclines).parse()
+		self.contents, self.deftopic, self.files = SitemapFile(hhclines).parse()
 
 	def get_entries(self, name):
 		""" Get all entries """
@@ -156,22 +156,25 @@ class CHMDir(object):
 				error_msg("OSError: Directory '%s' is already exists!" % dir)
 				sys.exit(1)    
 
-	def raw_dump(self, ext=['*']):
-		""" Dump CHM entries into the stdout """
+	def raw_dump(self, ext=['*'], output=sys.stdout):
+		""" Dump CHM entries into stdout """
 		# build regex from the list of auxillary files
 		aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
 		ext_re = '|'.join([ '.*' + '\.' + s + '$' for s in ext])
-		for e in self.entries:
+		for e in self.files:
 			# if entry is auxillary file, than skip it
 			if re.match(aux_re, e) or not re.match(ext_re, e):
 				continue
 			# to use this function you should have 'lynx' or 'elinks' installed
-			htmltotext(input=CHMEntry(self, e).get(), cmd=self.htmltotext)
+			htmltotext(input=CHMEntry(self, e).get(), cmd=self.htmltotext, output=output)
 
-	def dump_html(self):
-		""" Dump HTML content from CHM file into stdout """
-		# make html content dumping
-		self.raw_dump(['html', 'htm'])
+	def chm2text(self, output=sys.stdout):
+		""" Convert CHM into Single Text file """
+		self.raw_dump(['html', 'htm'], output=output)
+		
+	def chm2html(self):
+		""" Convert CHM into single HTML file """
+		pass
 
 
 class CHMFile(CHMDir):
@@ -273,7 +276,7 @@ class SitemapFile(object):
 	def parse(self):
 		p = SitemapParser()
 		p.feed(self.lines)
-		return (p.parsed + '\n]', p.deftopic)
+		return (p.parsed + '\n]', p.deftopic, p.files)
 
 
 class TagStack(list):
@@ -305,6 +308,7 @@ class SitemapParser(HTMLParser):
 		self.params = {}
 		self.parsed = ''
 		self.deftopic = ''
+		self.files = []
 		HTMLParser.__init__(self)
         
 	def handle_starttag(self, tag, attrs):
@@ -361,6 +365,10 @@ class SitemapParser(HTMLParser):
 				else:
 					nstr = '"%s"'
 					self.params['name'] = self.params['name'].replace('"', "\\\"")
+					
+				# Create a list of ordered files
+				if self.params['local'].lower() not in self.files:
+					self.files.append("/" + re.sub("#.*$", '', self.params['local'].lower()))
 
 				fstr = nstr + ',' + lstr + ',' + '"%s"'
 				self.parsed += fstr % (
