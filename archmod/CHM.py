@@ -26,6 +26,7 @@ except ImportError:
 
 
 from archmod.chmtotext import chmtotext
+from archmod.chmtohtml import chmtohtml
 
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
@@ -33,6 +34,9 @@ if os.path.exists(user_config):
 	config = user_config
 else:
 	config = '/etc/archmage/arch.conf'
+
+# Max ToC levels
+MAXTOCLVL = 4
 
 def listdir_r(dir):
 	def f(res, dir, files):
@@ -65,7 +69,7 @@ class CHMDir(object):
 			if e.lower().endswith('.hhk'):
 				self.hhk = e
 		hhclines = self.get_entry_by_name(self.hhc)
-		self.contents, self.deftopic, self.files = SitemapFile(hhclines).parse()
+		self.contents, self.deftopic, self.files, self.toclevels = SitemapFile(hhclines).parse()
 
 	def get_entries(self, name):
 		""" Get all entries """
@@ -111,25 +115,26 @@ class CHMDir(object):
 		tpl = open(os.path.join(self.templates_dir, os.path.basename(name))).read()
 		return re.sub('\<%(.+?)%\>', self.sub_mytag, tpl)
 
-	def process_templ(self):
+	def process_templ(self, destdir="."):
 		""" Process templates """
 		for template in self.templates:
-			open(os.path.basename(template), 'w').write(self.get_template_by_name(template))
-		if not os.path.exists('icons/'):
-			shutil.copytree(os.path.join(self.icons_dir), 'icons/')
+			open(os.path.join(destdir, os.path.basename(template)), 'w').write(self.get_template_by_name(template))
+		if not os.path.exists(os.path.join(destdir, 'icons/')):
+			shutil.copytree(os.path.join(self.icons_dir), os.path.join(destdir, 'icons/'))
 
-	def raw_extract(self):
+	def raw_extract(self, ext=['*'], entries=[], destdir="."):
 		""" Extract raw CHM entries into the files """
 		# build regex from the list of auxillary files
 		aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
-		for e in self.entries:
+		ext_re = '|'.join([ '.*' + '\.' + s + '$' for s in ext])
+		for e in entries:
 			# if entry is auxillary file, than skip it
-			if re.match(aux_re, e):
+			if re.match(aux_re, e) or not re.match(ext_re, e):
 				continue
 			# process entry
 			fname = string.lower(e[1:])
 			# get dirname for file fname if any
-			dname = os.path.dirname(fname)
+			dname = os.path.dirname(os.path.join(destdir, fname))
 			# if dname is a directory and it's not exist, than build it
 			if dname and not os.path.exists(dname):
 				os.makedirs(dname)
@@ -139,18 +144,17 @@ class CHMDir(object):
 				if self.fs_encoding:
 					fname = fname.decode('utf-8').encode(self.fs_encoding)
 				# write CHM entry content into the file
-				open(fname, 'w').writelines(CHMEntry(self, e).get())
+				open(os.path.join(destdir, fname), 'w').writelines(CHMEntry(self, e).get())
 
 	def extract(self, dir):
 		""" Extract CHM file content into FS """
 		try:
 			# directory to extract CHM file content
 			os.mkdir(dir)
-			os.chdir(dir)
 			# make raw content extraction
-			self.raw_extract()
+			self.raw_extract(entries=self.entries, destdir=dir)
 			# process templates
-			self.process_templ()
+			self.process_templ(destdir=dir)
 		except OSError, error:
 			if error[0] == errno.EEXIST:
 				error_msg("OSError: Directory '%s' is already exists!" % dir)
@@ -166,15 +170,19 @@ class CHMDir(object):
 			if re.match(aux_re, e) or not re.match(ext_re, e):
 				continue
 			# to use this function you should have 'lynx' or 'elinks' installed
-			chmtotext(input=CHMEntry(self, e).get(), cmd=self.htmltotext, output=output)
+			chmtotext(input=CHMEntry(self, e).get(), cmd=self.chmtotext, output=output)
 
 	def chm2text(self, output=sys.stdout):
 		""" Convert CHM into Single Text file """
 		self.raw_dump(['html', 'htm'], output=output)
 		
-	def chm2html(self):
+	def chm2html(self, output):
 		""" Convert CHM into single HTML file """
-		pass
+		print 'chm2html: %s' % (output)
+		options = []
+		if self.toclevels is not None:
+			options.append("--toclevels %s" % (self.toclevels))
+		chmtohtml(self.files, self.chmtohtml, output)
 	
 	def chm2pdf(self):
 		""" Convert CHM into PDF file """
@@ -284,7 +292,7 @@ class SitemapFile(object):
 	def parse(self):
 		p = SitemapParser()
 		p.feed(self.lines)
-		return (p.parsed + '\n]', p.deftopic, p.files)
+		return (p.parsed + '\n]', p.deftopic, p.files, p.toclevels)
 
 
 class TagStack(list):
@@ -317,6 +325,7 @@ class SitemapParser(HTMLParser):
 		self.parsed = ''
 		self.deftopic = ''
 		self.files = []
+		self.toclevels = None
 		HTMLParser.__init__(self)
         
 	def handle_starttag(self, tag, attrs):
@@ -377,6 +386,13 @@ class SitemapParser(HTMLParser):
 				# Create a list of ordered files
 				if self.params['local'].lower() not in self.files:
 					self.files.append("/" + re.sub("#.*$", '', self.params['local'].lower()))
+
+				# Count ToC Levels
+				if self.toclevels < self.tagstack.count('param'):
+					if self.tagstack.count('param') > MAXTOCLVL:
+						self.toclevels = MAXTOCLVL
+					else:
+						self.toclevels = self.tagstack.count('param')
 
 				fstr = nstr + ',' + lstr + ',' + '"%s"'
 				self.parsed += fstr % (
