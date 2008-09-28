@@ -17,6 +17,7 @@ Features List
 
   * Extracting CHM content
   * Dumping HTML data from CHM file as plain text (using external tools)
+  * Converting CHM file into another file formats: Plain Text
   * Running as standalone http-server
   * Extension for Apache Web Server - mod_chm
 
