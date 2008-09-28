@@ -25,7 +25,7 @@ except ImportError:
 	sys.exit(1)
 
 
-from archmod.htmltotext import htmltotext
+from archmod.chmtotext import chmtotext
 
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
@@ -166,7 +166,7 @@ class CHMDir(object):
 			if re.match(aux_re, e) or not re.match(ext_re, e):
 				continue
 			# to use this function you should have 'lynx' or 'elinks' installed
-			htmltotext(input=CHMEntry(self, e).get(), cmd=self.htmltotext, output=output)
+			chmtotext(input=CHMEntry(self, e).get(), cmd=self.htmltotext, output=output)
 
 	def chm2text(self, output=sys.stdout):
 		""" Convert CHM into Single Text file """
@@ -174,6 +174,14 @@ class CHMDir(object):
 		
 	def chm2html(self):
 		""" Convert CHM into single HTML file """
+		pass
+	
+	def chm2pdf(self):
+		""" Convert CHM into PDF file """
+		pass
+	
+	def chm2ps(self):
+		""" Convert CHM into PS file """
 		pass
 
 
