@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
-# Html to Text convertor (using external tool: lynx or elinks)
+# Copyright (c) 2005-2008 Basil Shubin <bashu@users.sourceforge.net>
+
+'''Html to Text convertor (using external tool: lynx or elinks)'''
 
 import sys
 import signal
