@@ -1,5 +1,5 @@
-__all__ = ['CHM', 'mod_chm', 'htmltotext']
-__version__ = '0.1.9.2'
+__all__ = ['CHM', 'mod_chm', 'chmtotext']
+__version__ = '0.2'
 
 import sys
 
