@@ -11,6 +11,7 @@ import urllib
 import errno
 import string
 import mimetypes
+import tempfile
 
 from HTMLParser import HTMLParser, HTMLParseError, piclose
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler 
@@ -178,11 +179,12 @@ class CHMDir(object):
 		
 	def chm2html(self, output):
 		""" Convert CHM into single HTML file """
-		print 'chm2html: %s' % (output)
-		options = []
-		if self.toclevels is not None:
-			options.append("--toclevels %s" % (self.toclevels))
-		chmtohtml(self.files, self.chmtohtml, output)
+		# Extract CHM content into temp directory
+		tempdir = tempfile.mkdtemp(prefix=output.rsplit('.', 1)[0])
+		self.raw_extract(entries=self.files, destdir=tempdir)
+		chmtohtml([ os.path.abspath(tempdir + file) for file in self.files ], self.chmtohtml, self.toclevels, output)
+		# Removing temp files
+		shutil.rmtree(path=tempdir)
 	
 	def chm2pdf(self):
 		""" Convert CHM into PDF file """

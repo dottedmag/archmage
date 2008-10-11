@@ -7,7 +7,7 @@
 # Significantly modified by Basil Shubin <bashu@users.sourceforge.net>
 #
 # Copyright (c) 2003 Eugeny Korekin <aaaz@users.sourceforge.net>
-# Copyright (c) 2005-2007 Basil Shubin <bashu@users.sourceforge.net>
+# Copyright (c) 2005-2008 Basil Shubin <bashu@users.sourceforge.net>
 
 
 """arCHMage -- extensible reader and decompiler for files in the CHM format.
@@ -185,7 +185,7 @@ def main():
 		# TODO: add checking if file exists
 		source.chm2text(open(options.output, 'w'))
 	elif options.mode == CHM2HTML:
-		source.chm2html()
+		source.chm2html(options.output)
 	elif options.mode == EXTRACT:
 		source.extract(options.output)
 
