@@ -28,6 +28,8 @@ except ImportError:
 
 from archmod.chmtotext import chmtotext
 from archmod.chmtohtml import chmtohtml
+from archmod.chmtopdf import chmtopdf
+from archmod.chmtops import chmtops
 
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
@@ -186,13 +188,21 @@ class CHMDir(object):
 		# Removing temp files
 		shutil.rmtree(path=tempdir)
 	
-	def chm2pdf(self):
+	def chm2pdf(self, output):
 		""" Convert CHM into PDF file """
-		pass
+		tempdir = tempfile.mkdtemp(prefix=output.rsplit('.', 1)[0])
+		self.raw_extract(entries=self.files, destdir=tempdir)
+		chmtopdf([ os.path.abspath(tempdir + file) for file in self.files ], self.chmtopdf, self.toclevels, output)
+		# Removing temp files
+		shutil.rmtree(path=tempdir)
 	
-	def chm2ps(self):
+	def chm2ps(self, output):
 		""" Convert CHM into PS file """
-		pass
+		tempdir = tempfile.mkdtemp(prefix=output.rsplit('.', 1)[0])
+		self.raw_extract(entries=self.files, destdir=tempdir)
+		chmtops([ os.path.abspath(tempdir + file) for file in self.files ], self.chmtops, self.toclevels, output)
+		# Removing temp files
+		shutil.rmtree(path=tempdir)
 
 
 class CHMFile(CHMDir):
