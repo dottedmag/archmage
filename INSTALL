@@ -1,13 +1,13 @@
 Source Tarball
 ==============
 
-First unpark source tarball:
+First unpack source tarball:
 
-  # tar xzvf archmage-0.1.9.tar.gz
+  # tar xzvf archmage-<version>.tar.gz
 
-change directory:
+change working directory:
  
-  # cd archmage-0.1.9
+  # cd archmage-<version>
 
 to install arCHMage run following command:
 
@@ -17,7 +17,7 @@ to install arCHMage run following command:
 Debian / Ubuntu
 ===============
 
-You can use prepackaged version from archive:
+You can use prepackaged version from software archive:
 
   # apt-get install archmage
 
@@ -32,4 +32,7 @@ or to use it with apache2:
 To have ability to dump HTML data from CHM file as plain text:
 
  # apt-get install lynx
- 
+
+For converting CHM file into Single HTML, PDF or PostScript file:
+
+ # apt-get install htmldoc

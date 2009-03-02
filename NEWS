@@ -1,5 +1,11 @@
 arCHMage 0.2
 ============
+Changes/New features:
+
+* CHM -> single html conversion
+* CHM -> PostScript conversion
+* CHM -> PDF conversion
+
 Bug fixes:
 
 * [SF #1767529] IOError exception using CHM dump option
