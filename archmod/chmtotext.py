@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2005-2008 Basil Shubin <bashu@users.sourceforge.net>
+# Copyright (c) 2005-2009 Basil Shubin <bashu@users.sourceforge.net>
 
-''' CHM to Text convertor (using external tool: lynx or elinks)'''
+"""CHM to Text converter (using external tool: lynx or elinks)"""
 
 import sys
 import signal
@@ -12,7 +12,7 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
 def chmtotext(input, cmd, output=sys.stdout):
-	""" CHM to Text convertor """
+	"""CHM to Text converter"""
 	proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)
 	proc.stdin.write(input)
 	print >> output, proc.communicate()[0]
