@@ -86,26 +86,23 @@ def parseargs():
 			sys.exit(archmod.OK)
 		elif opt in ('-p', '--port'):
 			if options.mode is not None:
-				usage(archmod.ERROR, '-x and -p are mutually exclusive')
+				raise ValueError, '-x and -p or -c are mutually exclusive'
 			options.mode = archmod.HTTPSERVER
 			try:
 				options.port = int(arg)
 			except ValueError, msg:
-				usage(archmod.ERROR, 'Invalid port number: %s' % msg)
+				raise ValueError, 'Invalid port number: %s' % msg
 		elif opt in ('-c', '--convert'):
 			if options.mode is not None:
-				usage(archmod.ERROR, '-x, -p or -c are mutually exclusive')
-			try:
-				options.mode = archmod.output_format(str(arg))
-			except ValueError, msg:
-				usage(archmod.ERROR, 'Invalid output file format: %s' % str(arg))
+				raise ValueError, '-x, -p or -c are mutually exclusive'
+			options.mode = archmod.output_format(str(arg))
 		elif opt in ('-x', '--extract'):
 			if options.mode is not None:
-				usage(archmod.ERROR, '-x and -p are mutually exclusive')
+				raise ValueError, '-x and -p or -c are mutually exclusive'
 			options.mode = archmod.EXTRACT
 		elif opt in ('-d', '--dump'):
 			if options.mode is not None:
-				usage(archmod.ERROR, '-d should be used without any other options')
+				raise ValueError, '-d should be used without any other options'
 			options.mode = archmod.DUMPHTML
 		else:
 			assert False, (opt, arg)
@@ -116,7 +113,7 @@ def parseargs():
 		options.mode = archmod.EXTRACT
 
 	if not args:
-		usage(archmod.ERROR, 'No CHM file was specified!')
+		raise ValueError, 'No CHM file was specified!'
 	else:
 		# Get CHM file name from command line
 		options.chmfile = args.pop(0)
@@ -138,16 +135,19 @@ def parseargs():
 	
 	# Any other arguments are invalid
 	if args:
-		usage(archmod.ERROR, 'Invalid arguments: ' + archmod.COMMASPACE.join(args))
+		raise ValueError, 'Invalid arguments: ' + archmod.COMMASPACE.join(args)
 
 	return options
 
 
 def main():
-	options = parseargs()
-	if not os.path.exists(options.chmfile):
-		archmod.error_msg('No such file: %s' % options.chmfile)
+	try:
+		options = parseargs()
+	except:
+		archmod.traceback_msg()
 		sys.exit(archmod.ERROR)
+	if not os.path.exists(options.chmfile):
+		raise OSError, 'No such file: %s' % options.chmfile
 
 	# Check where is argument a CHM file or directory with decompressed
 	# content. Depending on results make 'source' instance of CHMFile or
@@ -160,6 +160,8 @@ def main():
 	elif options.mode == archmod.DUMPHTML:
 		source.chm2text()
 	elif options.mode == archmod.CHM2TXT:
+		if os.path.exists(options.output):
+			raise OSError, '%s is already exists' % options.output
 		source.chm2text(open(options.output, 'w'))
 	elif options.mode in (archmod.CHM2HTML, archmod.CHM2PDF,archmod.CHM2PS):
 		source.htmldoc(options.output, options.mode)
@@ -167,4 +169,8 @@ def main():
 		source.extract(options.output)
 
 if __name__ == '__main__':
-	main()
+	try:
+		main()
+	except OSError:
+		archmod.traceback_msg()
+		sys.exit(archmod.ERROR)
