@@ -7,7 +7,7 @@
 # Significantly modified by Basil Shubin <bashu@users.sourceforge.net>
 #
 # Copyright (c) 2003 Eugeny Korekin <aaaz@users.sourceforge.net>
-# Copyright (c) 2005-2008 Basil Shubin <bashu@users.sourceforge.net>
+# Copyright (c) 2005-2009 Basil Shubin <bashu@users.sourceforge.net>
 
 
 """arCHMage -- extensible reader and decompiler for files in the CHM format.
@@ -17,17 +17,24 @@ Where:
 
     -x / --extract
         Extracts CHM file into specified directory. If destination
-        directory is ommited, than the new one will be created based
-        on name of CHM file. This options is by defaut.
+        directory is omitted, than the new one will be created based
+        on name of CHM file. This options is by default.
         
     -c format
-    --convert format
-        TODO: Put description here
+    --convert=format
+        Convert CHM file into specified file format. If destination
+        file is omitted, than the new one will be created based
+        on name of CHM file. Available formats:
+
+            html - Single HTML file
+            text - Plain Text file
+            pdf - Adobe PDF file format
+            ps - PostScript file format
 
     -p number
     --port=number
         Acts as HTTP server on specified port number, so you can read
-        CHM file with your favourite browser. You can specify a directory
+        CHM file with your favorite browser. You can specify a directory
         with decompressed content.
 
     -d / --dump
@@ -40,57 +47,28 @@ Where:
         Print this text and exit.
 """
 
-import os
-import sys
+import os, sys
 import getopt
 
-from archmod import __version__, message, error_msg
+import archmod
+from archmod.CHM import CHMFile, CHMDir, CHMServer
 
-from archmod.CHM import *
 
 program = sys.argv[0]
 
-EXTRACT = 1		# Extract CHM content
-HTTPSERVER = 2	# Act as standalone HTTP server
-DUMPHTML = 3	# Dump CHM file as plain text
-CHM2TXT = 4		# Convert CHM file into Single Text file
-CHM2HTML = 5	# Convert CHM file into Single HTML file
-CHM2PDF = 6		# Convert CHM file into PDF Document
-CHM2PS = 7		# Convert CHM file into PDF Document
-
-COMMASPACE = ', '
-
-def usage(code=0, msg=''):
-	message(code, __doc__ % globals())
-	message(code, msg)
+def usage(code=archmod.OK, msg=''):
+	"""Show application usage and quit"""
+	archmod.message(code, __doc__ % globals())
+	archmod.message(code, msg)
 	sys.exit(code)
 
-def file2dir(filename):
-	""" Convert filename.chm to filename_html """
-	dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
-	return dirname
-	
-def output_file(filename, mode):
-	""" Convert filename.chm to output filename """
-	if mode == CHM2TXT:
-		file_ext = 'txt'
-	elif mode == CHM2HTML:
-		file_ext = 'html'
-	elif mode == CHM2PDF:
-		file_ext = 'pdf'
-	elif mode == CHM2PS:
-		file_ext = 'ps'
-	else:
-		file_ext = 'output'
-	output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
-	return output_filename
 
 def parseargs():
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
-								   ['extract', 'convert', 'dump', 'port=', 'version', 'help'])
+								['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
 	except getopt.error, msg:
-		usage(1, msg)
+		usage(archmod.ERROR, msg)
 
 	class Options:
 		mode = None        # EXTRACT or HTTPSERVER or other
@@ -104,68 +82,63 @@ def parseargs():
 		if opt in ('-h', '--help'):
 			usage()
 		elif opt in ('-V', '--version'):
-			message(0, __version__)
-			sys.exit(0)
+			archmod.message(archmod.OK, archmod.__version__)
+			sys.exit(archmod.OK)
 		elif opt in ('-p', '--port'):
 			if options.mode is not None:
-				usage(1, '-x and -p are mutually exclusive')
-			options.mode = HTTPSERVER
+				usage(archmod.ERROR, '-x and -p are mutually exclusive')
+			options.mode = archmod.HTTPSERVER
 			try:
 				options.port = int(arg)
 			except ValueError, msg:
-				usage(1, 'Invalid port number: %s' % msg)
+				usage(archmod.ERROR, 'Invalid port number: %s' % msg)
 		elif opt in ('-c', '--convert'):
 			if options.mode is not None:
-				usage(1, '-x, -p or -c are mutually exclusive')
+				usage(archmod.ERROR, '-x, -p or -c are mutually exclusive')
 			try:
-				mode = str(arg)
-				if mode == 'text':
-					options.mode = CHM2TXT
-				elif mode == 'html':
-					options.mode = CHM2HTML
-				elif mode == 'pdf':
-					options.mode = CHM2PDF
-				elif mode == 'ps':
-					options.mode = CHM2PS
-				else:
-					raise ValueError
+				options.mode = archmod.output_format(str(arg))
 			except ValueError, msg:
-				usage(1, 'Invalid file format: %s' % mode)
+				usage(archmod.ERROR, 'Invalid output file format: %s' % str(arg))
 		elif opt in ('-x', '--extract'):
 			if options.mode is not None:
-				usage(1, '-x and -p are mutually exclusive')
-			options.mode = EXTRACT
+				usage(archmod.ERROR, '-x and -p are mutually exclusive')
+			options.mode = archmod.EXTRACT
 		elif opt in ('-d', '--dump'):
 			if options.mode is not None:
-				usage(1, '-d should be used without any other options')
-			options.mode = DUMPHTML
+				usage(archmod.ERROR, '-d should be used without any other options')
+			options.mode = archmod.DUMPHTML
 		else:
 			assert False, (opt, arg)
 
-    # Sanity checks
+	# Sanity checks
 	if options.mode is None:
-		options.mode = EXTRACT
+		# Set default option
+		options.mode = archmod.EXTRACT
 
 	if not args:
-		usage(1, 'No CHM file was specified!')
+		usage(archmod.ERROR, 'No CHM file was specified!')
 	else:
+		# Get CHM file name from command line
 		options.chmfile = args.pop(0)
 
-	# CHM content should be extracted
-	if options.mode == EXTRACT:
+	# if CHM content should be extracted
+	if options.mode == archmod.EXTRACT:
 		if not args:
-			options.output = file2dir(options.chmfile)
+			options.output = archmod.file2dir(options.chmfile)
 		else:
+			# get output directory from command line
 			options.output = args.pop(0)
-	elif options.mode in (CHM2TXT, CHM2HTML, CHM2PDF, CHM2PS):
+	# or converted into another file format
+	elif options.mode in (archmod.CHM2TXT, archmod.CHM2HTML, archmod.CHM2PDF, archmod.CHM2PS):
 		if not args:
-			options.output = output_file(options.chmfile, options.mode)
+			options.output = archmod.output_file(options.chmfile, options.mode)
 		else:
+			# get output filename from command line
 			options.output = args.pop(0)
-			
+	
 	# Any other arguments are invalid
 	if args:
-		usage(1, 'Invalid arguments: ' + COMMASPACE.join(args))
+		usage(archmod.ERROR, 'Invalid arguments: ' + archmod.COMMASPACE.join(args))
 
 	return options
 
@@ -173,30 +146,25 @@ def parseargs():
 def main():
 	options = parseargs()
 	if not os.path.exists(options.chmfile):
-		error_msg('No such file: %s' % options.chmfile)
-		sys.exit(1)
+		archmod.error_msg('No such file: %s' % options.chmfile)
+		sys.exit(archmod.ERROR)
 
 	# Check where is argument a CHM file or directory with decompressed
 	# content. Depending on results make 'source' instance of CHMFile or
 	# CHMDir class.
 	source = os.path.isfile(options.chmfile) and \
-			 CHMFile(options.chmfile) or CHMDir(options.chmfile)
+		CHMFile(options.chmfile) or CHMDir(options.chmfile)
 
-	if options.mode == HTTPSERVER:
+	if options.mode == archmod.HTTPSERVER:
 		CHMServer(source, port=options.port).run()
-	elif options.mode == DUMPHTML:
+	elif options.mode == archmod.DUMPHTML:
 		source.chm2text()
-	elif options.mode == CHM2TXT:
-		# TODO: add checking if file exists
+	elif options.mode == archmod.CHM2TXT:
 		source.chm2text(open(options.output, 'w'))
-	elif options.mode == CHM2HTML:
-		source.chm2html(options.output)
-	elif options.mode == CHM2PDF:
-		source.chm2pdf(options.output)
-	elif options.mode == CHM2PS:
-		source.chm2ps(options.output)
-	elif options.mode == EXTRACT:
+	elif options.mode in (archmod.CHM2HTML, archmod.CHM2PDF,archmod.CHM2PS):
+		source.htmldoc(options.output, options.mode)
+	elif options.mode == archmod.EXTRACT:
 		source.extract(options.output)
 
 if __name__ == '__main__':
-    main()
+	main()
