@@ -67,6 +67,13 @@ There is several ways to use arCHMage package now:
 
    archmage -c <output format> <chmfile> [output file]
 
+   Available formats:
+
+      html - Single HTML file
+      text - Plain Text file
+      pdf - Adobe PDF file format
+      ps - PostScript file format
+
    Note: To use this feature you must have htmldoc installed. 
    See /etc/arch.conf for details.
 
