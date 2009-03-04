@@ -141,11 +141,7 @@ def parseargs():
 
 
 def main():
-	try:
-		options = parseargs()
-	except:
-		archmod.traceback_msg()
-		sys.exit(archmod.ERROR)
+	options = parseargs()
 	if not os.path.exists(options.chmfile):
 		raise OSError, 'No such file: %s' % options.chmfile
 
@@ -171,6 +167,6 @@ def main():
 if __name__ == '__main__':
 	try:
 		main()
-	except OSError:
-		archmod.traceback_msg()
+	except StandardError, msg:
+		archmod.message(archmod.ERROR, msg)
 		sys.exit(archmod.ERROR)
