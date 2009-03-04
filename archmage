@@ -51,7 +51,8 @@ import os, sys
 import getopt
 
 import archmod
-from archmod.CHM import CHMFile, CHMDir, CHMServer
+from archmod.CHM import CHMFile, CHMDir
+from archmod.CHMServer import CHMServer
 
 
 program = sys.argv[0]
