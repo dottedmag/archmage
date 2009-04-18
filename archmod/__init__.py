@@ -1,4 +1,4 @@
-__all__ = ['CHM', 'mod_chm', 'chmtotext', 'htmldoc']
+__all__ = ['CHM', 'CHMParser', 'CHMServer', 'mod_chm', 'chmtotext', 'htmldoc']
 __version__ = '0.2'
 
 import sys, os
@@ -48,7 +48,8 @@ def output_format(mode):
 	elif mode == 'ps':
 		return CHM2PS
 	else:
-		raise ValueError, 'Invalid output file format: %s' % mode
+		message(ERROR, 'Invalid output file format: %s' % mode)
+		sys.exit(ERROR)
 
 def output_file(filename, mode):
 	"""Convert filename.chm to filename.output"""
