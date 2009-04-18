@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from HTMLTags import HTMLTags
 from HTMLParser import HTMLParser, HTMLParseError, piclose
 
-# TODO: Eliminate all magic chars/words
+import archmod
+
 
 class SitemapFile(object):
 	"""Sitemap file class"""
@@ -13,17 +15,19 @@ class SitemapFile(object):
 	def parse(self):
 		p = SitemapParser()
 		p.feed(self.lines)
-		return (p.parsed + '\n]', p.deftopic)
+		return (p.parsed + archmod.LF + archmod.SQUARE_BRACKETS[1], p.deftopic)
 
 
 class TagStack(list):
 	"""from book of David Mertz 'Text Processing in Python'"""
+	
+	tags = HTMLTags()
 
 	def append(self, tag):
 		# Remove every paragraph-level tag if this is one
-		if tag.lower() in ('p', 'blockquote'):
+		if tag.lower() in (self.tags.p, self.tags.blockquote):
 			self = TagStack([ t for t in super
-							if t not in ('p', 'blockquote') ])
+							if t not in (self.tags.p, self.tags.blockquote) ])
 		super(TagStack, self).append(tag)
 
 	def pop(self, tag):
@@ -32,13 +36,15 @@ class TagStack(list):
 		try:
 			pos = self.index(tag)
 		except ValueError:
-			raise HTMLParser.HTMLParseError, 'HTMLParseError: Tag not on stack'
+			raise HTMLParseError, 'Tag not on stack'
 		self[:] = self[pos + 1:]
 		self.reverse()
 
 
 class SitemapParser(HTMLParser):
 	"""Class for parsing files in SiteMap format, such as .hhc"""
+	
+	tags = HTMLTags()
 
 	def __init__(self, maxtoclvl=4):
 		self.tagstack = TagStack()
@@ -49,19 +55,19 @@ class SitemapParser(HTMLParser):
 
 	def handle_starttag(self, tag, attrs):
 		# first ul, start processing from here
-		if tag == 'ul' and not self.tagstack:
+		if tag == self.tags.ul and not self.tagstack:
 			self.tagstack.append(tag)
-			self.parsed += '\n['
+			self.parsed += archmod.LF + archmod.SQUARE_BRACKETS[0]
 		# if inside ul
 		elif self.tagstack:
-			if tag == 'li':
-				if self.tagstack[-1] != 'ul':
-					self.parsed += ']'
-					self.tagstack.pop('li')
+			if tag == self.tags.li:
+				if self.tagstack[-1] != self.tags.ul:
+					self.parsed += archmod.SQUARE_BRACKETS[1]
+					self.tagstack.pop(self.tags.li)
 				indent = ' ' * len(self.tagstack)
-				if self.parsed != '\n[':
-					self.parsed += ','
-				self.parsed += '\n' + indent + '['
+				if self.parsed != archmod.LF + archmod.SQUARE_BRACKETS[0]:
+					self.parsed += archmod.COMMASPACE
+				self.parsed += archmod.LF + indent + archmod.SQUARE_BRACKETS[0]
 			if tag == 'param':
 				self.params[str(dict(attrs)['name']).lower()] = dict(attrs)['value']
 			self.tagstack.append(tag)
@@ -69,8 +75,8 @@ class SitemapParser(HTMLParser):
 	def handle_endtag(self, tag):
 		# if inside ul
 		if self.tagstack:
-			if tag == 'ul':
-				self.parsed += ']'
+			if tag == self.tags.ul:
+				self.parsed += archmod.SQUARE_BRACKETS[1]
 			if tag == 'object':
 				if not self.params.has_key('imagenumber'):
 					self.params['imagenumber'] = 1
@@ -86,10 +92,10 @@ class SitemapParser(HTMLParser):
 				#	self.deftopic = self.params['Local'].lower()
 
 				# Fixing new line sign
-				self.params['name'] = self.params['name'].replace('\r\n', '\\n').replace('\n', '\\n')
-				self.params['local'] = self.params['local'].replace('..\\', '')
+				self.params['name'] = self.params['name'].replace(archmod.CR + archmod.LF, archmod.BACKSLASH + 'n').replace(archmod.LF, archmod.BACKSLASH + 'n')
+				self.params['local'] = self.params['local'].replace('..' + archmod.BACKSLASH, '')
 
-				# TODO: Why I need this...
+				# TODO: Do something with this...
 				if '"' in self.params['local']:
 					lstr = "'%s'"
 					self.params['local'] = self.params['local'].replace("'", '\\\'')
@@ -117,13 +123,13 @@ class SitemapParser(HTMLParser):
 #					else:
 #						self.toclevels = self.tagstack.count('param')
 
-				fstr = nstr + ',' + lstr + ',' + '"%s"'
+				fstr = nstr + archmod.COMMASPACE + lstr + archmod.COMMASPACE + '"%s"'
 				self.parsed += fstr % (
 					self.params['name'],
 					self.params['local'].lower(),
 					self.params['imagenumber'])
 				self.params = {}
-			if tag != 'li':
+			if tag != self.tags.li:
 				self.tagstack.pop(tag)
 
 	def parse_starttag(self, i):
