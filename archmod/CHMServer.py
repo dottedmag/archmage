@@ -37,6 +37,6 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 
 		# get html data from CHM instance and write it into output
 		try:
-			self.wfile.write(self.server.CHM.get_entry_by_name(pagename))
+			self.wfile.write(self.server.CHM.get_entry(pagename))
 		except NameError, msg:
 			archmod.message(archmod.ERROR, 'NameError: %s' % msg)

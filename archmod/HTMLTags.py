@@ -74,14 +74,14 @@ class HTMLTags(object):
 		'VAR'
 	]
 	
-	def __getattr__(self, value):
+	def __getattr__(self, key):
 		try:
-			index = self.tags.index(value.upper())
+			index = self.tags.index(key.upper())
 		except:
 			index = None
 		if index:
-			if value.islower():
+			if key.islower():
 				return self.tags[index].lower()
 			else:
 				return self.tags[index]
-		raise AttributeError(value)
+		raise AttributeError(key)
