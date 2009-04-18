@@ -3,9 +3,10 @@
 import urllib
 import mimetypes
 
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+
 import archmod
 
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler 
 
 class CHMServer(HTTPServer):
 	"""HTTP Server that handle Compressed HTML"""
