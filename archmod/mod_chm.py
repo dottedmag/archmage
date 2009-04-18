@@ -19,7 +19,7 @@ def handler(req):
 
 	if pagename:
 		try:
-			page = chmfile.get_entry_by_name(pagename)
+			page = chmfile.get_entry(pagename)
 		except:
 			return apache.HTTP_NOT_FOUND
 
