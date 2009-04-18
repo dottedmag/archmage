@@ -5,11 +5,12 @@ from archmod.CHM import CHMFile
 chmfile = None
 chmname = None
 
+
 def handler(req):
 	source = req.filename
 	pagename = req.path_info
 
-	global chmfile,chmname
+	global chmfile, chmname
 
 	if chmname != source:
 		chmfile = CHMFile(source)
@@ -39,7 +40,7 @@ def handler(req):
 	file = open(source, 'rb')
 	while 1:
 		tmp = file.read(4096)
-		if len(tmp)==0:
+		if len(tmp) == 0:
 			break
 		req.write(tmp)
 	return apache.OK
