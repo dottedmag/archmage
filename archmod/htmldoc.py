@@ -11,10 +11,10 @@ import subprocess
 def htmldoc(input, cmd, toclevels, output):
 	"""CHM to other format converter
 
-	input - list of input html files
-	cmd - htmldoc command with options
-	toclevels - ToC levels as htmldoc option
-	output - output file (single html, ps, pdf and etc)
+		input - list of input html files
+		cmd - htmldoc command with options
+		toclevels - ToC levels as htmldoc option
+		output - output file (single html, ps, pdf and etc)
 	"""
 	command = cmd
 	if toclevels is not None:
