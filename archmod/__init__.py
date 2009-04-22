@@ -1,4 +1,4 @@
-__all__ = ['CHM', 'CHMParser', 'CHMServer', 'mod_chm', 'chmtotext', 'htmldoc']
+__all__ = ['CHM', 'CHMParser', 'CHMServer', 'mod_chm', 'chmtotext', 'htmldoc', 'HTMLTags']
 __version__ = '0.2'
 
 import sys, os
@@ -16,7 +16,12 @@ CHM2HTML = 5	# Convert CHM file into Single HTML file
 CHM2PDF = 6		# Convert CHM file into PDF Document
 CHM2PS = 7		# Convert CHM file into PDF Document
 
+# Special characters
 COMMASPACE = ', '
+BACKSLASH = '\\'
+SQUARE_BRACKETS = ['[', ']']
+LF = '\n'
+CR = '\r'
 
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
@@ -48,8 +53,7 @@ def output_format(mode):
 	elif mode == 'ps':
 		return CHM2PS
 	else:
-		message(ERROR, 'Invalid output file format: %s' % mode)
-		sys.exit(ERROR)
+		sys.exit('Invalid output file format: %s' % mode)
 
 def output_file(filename, mode):
 	"""Convert filename.chm to filename.output"""
