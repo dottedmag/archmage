@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import re
+import mimetypes
+import sgmllib, urllib2
+
 from HTMLTags import HTMLTags
 from HTMLParser import HTMLParser, HTMLParseError, piclose
+from urlparse import urlparse
 
 import archmod
 
@@ -46,7 +51,7 @@ class SitemapParser(HTMLParser):
 	
 	tags = HTMLTags()
 
-	def __init__(self, maxtoclvl=4):
+	def __init__(self):
 		self.tagstack = TagStack()
 		self.params = {}
 		self.parsed = ''
@@ -110,19 +115,6 @@ class SitemapParser(HTMLParser):
 					nstr = '"%s"'
 					self.params['name'] = self.params['name'].replace('"', "\\\"")
 
-				# TODO: Refactore this code...
-#				# Create a list of ordered files
-#				if len(self.params['local'].strip()) != 0:
-#					if self.params['local'].lower() not in self.files:
-#						self.files.append("/" + re.sub("#.*$", '', self.params['local'].lower()))
-#
-#				# Count ToC Levels
-#				if self.toclevels < self.tagstack.count('param'):
-#					if self.tagstack.count('param') > self.maxtoclvl:
-#						self.toclevels = self.maxtoclvl
-#					else:
-#						self.toclevels = self.tagstack.count('param')
-
 				fstr = nstr + archmod.COMMASPACE + lstr + archmod.COMMASPACE + '"%s"'
 				self.parsed += fstr % (
 					self.params['name'],
@@ -149,3 +141,83 @@ class SitemapParser(HTMLParser):
 				return piclose.search(self.rawdata, i).end()
 			except:
 				return -1
+
+
+class PageLister(sgmllib.SGMLParser):
+	"""
+	parser of the chm.chm GetTopicsTree() method that retrieves the URL of the HTML
+	page embedded in the CHM file.
+	"""
+
+	def reset(self):
+		sgmllib.SGMLParser.reset(self)
+		self.pages = []
+
+	def start_param(self, attrs):
+		urlparam_flag = False
+		for key, value in attrs:
+			if key == 'name' and value.lower() == 'local':
+				urlparam_flag = True
+			if urlparam_flag and key == 'value':
+				self.pages.append('/' + re.sub("#.*$", '', value))
+
+
+class ImageCatcher(sgmllib.SGMLParser):
+	"""
+	finds image urls in the current html page, so to take them out from the chm file.
+	"""
+
+	def reset(self):
+		sgmllib.SGMLParser.reset(self)
+		self.imgurls = []
+
+	def start_img(self, attrs):
+		for key, value in attrs:
+			if key.lower() == 'src':
+				# Avoid duplicates in the list of image URLs.
+				if not self.imgurls.count('/' + value):
+					self.imgurls.append('/' + value)
+
+	def start_a(self, attrs):
+		for key, value in attrs:
+			if key.lower() == 'href':
+				url = urlparse(value)
+				value = urllib2.unquote(url.geturl())
+				value = '/' + re.sub("#.*$", '', value)
+				# Avoid duplicates in the list of image URLs.
+				if not url.scheme and not self.imgurls.count(value):
+					# Check the file mimetype
+					type = mimetypes.guess_type(value)[0]
+					if type and re.search('image/.*', type):
+						self.imgurls.append(value)
+
+
+class TOCCounter(HTMLParser):
+	"""Count ToC levels"""
+	
+	tags = HTMLTags()
+	
+	def __init__(self):
+		self.tagstack = TagStack()
+		self.count = 0
+		HTMLParser.__init__(self)
+
+	def handle_starttag(self, tag, attrs):
+		# first ul, start processing from here
+		if tag == self.tags.ul and not self.tagstack:
+			self.tagstack.append(tag)
+		elif self.tagstack:
+			if tag == self.tags.li:
+				if self.tagstack[-1] != self.tags.ul:
+					self.tagstack.pop(self.tags.li)
+			self.tagstack.append(tag)
+		
+	def handle_endtag(self, tag):
+		# if inside ul
+		if self.tagstack:
+			if tag == 'object':
+				if self.count < self.tagstack.count('param'):
+					self.count = self.tagstack.count('param')
+			if tag != self.tags.li:
+				self.tagstack.pop(tag)
+
