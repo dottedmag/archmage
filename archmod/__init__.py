@@ -14,7 +14,7 @@ DUMPHTML = 3	# Dump CHM file as plain text
 CHM2TXT = 4		# Convert CHM file into Single Text file
 CHM2HTML = 5	# Convert CHM file into Single HTML file
 CHM2PDF = 6		# Convert CHM file into PDF Document
-CHM2PS = 7		# Convert CHM file into PDF Document
+#CHM2PS = 7		# Convert CHM file into PDF Document
 
 # Special characters
 COMMASPACE = ', '
@@ -50,8 +50,8 @@ def output_format(mode):
 		return CHM2HTML
 	elif mode == 'pdf':
 		return CHM2PDF
-	elif mode == 'ps':
-		return CHM2PS
+#	elif mode == 'ps':
+#		return CHM2PS
 	else:
 		sys.exit('Invalid output file format: %s' % mode)
 
@@ -63,8 +63,8 @@ def output_file(filename, mode):
 		file_ext = 'html'
 	elif mode == CHM2PDF:
 		file_ext = 'pdf'
-	elif mode == CHM2PS:
-		file_ext = 'ps'
+#	elif mode == CHM2PS:
+#		file_ext = 'ps'
 	else:
 		file_ext = 'output'
 	output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext

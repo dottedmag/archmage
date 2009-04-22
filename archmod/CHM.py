@@ -215,8 +215,12 @@ class CHMDir(CachedSingleton):
 					self.extract_entry(entry=key, output_file=value, destdir=dirname)
 				# Fix output file name
 				output = os.path.join(dirname, output)
-#		elif format == archmod.CHM2PDF:
-#			command = self.chmtopdf
+		elif format == archmod.CHM2PDF:
+			command = self.chmtopdf
+			if self.image_files:
+				# Extract all images
+				for key, value in self.image_files.items():
+					self.extract_entry(entry=key, output_file=key.lower(), destdir=tempdir)
 #		elif format == archmod.CHM2PS:
 #			command = self.chmtops
 		htmldoc(files, command, self.toclevels, output)
