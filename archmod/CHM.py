@@ -205,7 +205,7 @@ class CHMDir(CachedSingleton):
 		# List of temporary files
 		files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files ]
 		if format == archmod.CHM2HTML:
-			command = self.chmtohtml
+			options = self.chmtohtml
 			# change output from single html file to a directory with html file and images
 			if self.image_files:
 				dirname = archmod.file2dir(output)
@@ -219,12 +219,12 @@ class CHMDir(CachedSingleton):
 				# Fix output file name
 				output = os.path.join(dirname, output)
 		elif format == archmod.CHM2PDF:
-			command = self.chmtopdf
+			options = self.chmtopdf
 			if self.image_files:
 				# Extract all images
 				for key, value in self.image_files.items():
 					self.extract_entry(entry=key, output_file=key.lower(), destdir=tempdir)
-		htmldoc(files, command, self.toclevels, output)
+		htmldoc(files, self.htmldoc_exec, options, self.toclevels, output)
 		# Remove temporary files
 		shutil.rmtree(path=tempdir)	
 
