@@ -1,4 +1,4 @@
-__all__ = ['CHM', 'CHMParser', 'CHMServer', 'mod_chm', 'chmtotext', 'htmldoc', 'HTMLTags']
+__all__ = ['CHM', 'CHMServer', 'mod_chm']
 __version__ = '0.2'
 
 import sys, os
