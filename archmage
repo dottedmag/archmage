@@ -37,7 +37,7 @@ Where:
         with decompressed content.
 
     -d / --dump
-        Dump HTML data as plain text into standard output.
+        Dump HTML data from CHM file into standard output.
 
     -V / --version
         Print version number and exit.
@@ -154,7 +154,7 @@ def main():
 	if options.mode == archmod.HTTPSERVER:
 		CHMServer(source, port=options.port).run()
 	elif options.mode == archmod.DUMPHTML:
-		source.chm2text()
+		source.dump_html()
 	elif options.mode == archmod.CHM2TXT:
 		if os.path.exists(options.output):
 			sys.exit('%s is already exists' % options.output)
