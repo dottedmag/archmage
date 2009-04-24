@@ -160,7 +160,8 @@ class PageLister(sgmllib.SGMLParser):
 			if key == 'name' and value.lower() == 'local':
 				urlparam_flag = True
 			if urlparam_flag and key == 'value':
-				self.pages.append('/' + re.sub("#.*$", '', value))
+				# Sometime url has incorrect slashes
+				self.pages.append('/' + re.sub("#.*$", '', value.replace('\\', '/')))
 
 
 class ImageCatcher(sgmllib.SGMLParser):
