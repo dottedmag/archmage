@@ -16,9 +16,9 @@ Features List
 =============
 
   * Extracting CHM content
-  * Dumping HTML data from CHM file as plain text (using external tools)
+  * Dump HTML data from CHM file into standard output
   * Converting CHM file into another file formats (using external tools): 
-  		Plain Text, Single HTML, PostScript, PDF 
+  		Plain Text, Single HTML, PDF 
   * Running as standalone http-server
   * Extension for Apache Web Server - mod_chm
 
@@ -34,8 +34,8 @@ arCHMage requires the following libraries:
 
 Other (optional) dependencies:
 
-  * Lynx or ELinks - dumping HTML as plain text
-  * htmldoc - converting to single html, ps/pdf formats
+  * Lynx or ELinks - converting HTML to Plain Text
+  * htmldoc - converting to single html, pdf formats
   * mod_python - Apache/Python Integration
 
 
@@ -56,12 +56,11 @@ There is several ways to use arCHMage package now:
    
    Note: Decompilation will fail, if destination directory already exist.
 
-2) Dump HTML data from CHM file as plain text:
+2) Dump HTML data from CHM file:
 
    archmage -d <chmfile>
    
-   Note: All data dumped in to standard output. To use this feature you must
-   have lynx or elinks text browser installed. See /etc/arch.conf for details.
+   Note: All data dumped in to standard output.
 
 3) Convert CHM file into another file formats:
 
@@ -72,7 +71,6 @@ There is several ways to use arCHMage package now:
       html - Single HTML file
       text - Plain Text file
       pdf - Adobe PDF file format
-      ps - PostScript file format
 
    Note: To use this feature you must have htmldoc installed. 
    See /etc/arch.conf for details.

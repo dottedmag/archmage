@@ -2,15 +2,20 @@ arCHMage 0.2
 ============
 Changes/New features:
 
-* CHM -> single html conversion
-* CHM -> PostScript conversion
+* CHM -> Single HTML conversion
 * CHM -> PDF conversion
+* CHM -> Plain Text conversion
+
+* Changed option - 'dump' for dumping HTML data from CHM file into standard output.
+
+* Huge code re-factoring and lot of small changes/fixes...
 
 Bug fixes:
 
 * [SF #1767529] IOError exception using CHM dump option
 * [SF #1955872] import error
 * [SF #1805070] TOC is broken after decompilation
+* [SF #1767522] CHM -> single HTML conversion
 
 arCHMage 0.1.9
 ==============
