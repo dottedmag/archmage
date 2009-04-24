@@ -96,6 +96,7 @@ class SitemapParser(HTMLParser):
 				#if 'index.htm' in self.params['Local'].lower():
 				#	self.deftopic = self.params['Local'].lower()
 
+				# TODO: Rework this sometime later...
 				# Fixing new line sign
 				self.params['name'] = self.params['name'].replace(archmod.CR + archmod.LF, archmod.BACKSLASH + 'n').replace(archmod.LF, archmod.BACKSLASH + 'n')
 				self.params['local'] = self.params['local'].replace('..' + archmod.BACKSLASH, '')
@@ -184,12 +185,12 @@ class ImageCatcher(sgmllib.SGMLParser):
 				url = urlparse(value)
 				value = urllib2.unquote(url.geturl())
 				value = '/' + re.sub("#.*$", '', value)
+				# Check the file mimetype
+				type = mimetypes.guess_type(value)[0]
 				# Avoid duplicates in the list of image URLs.
-				if not url.scheme and not self.imgurls.count(value):
-					# Check the file mimetype
-					type = mimetypes.guess_type(value)[0]
-					if type and re.search('image/.*', type):
-						self.imgurls.append(value)
+				if not url.scheme and not self.imgurls.count(value) and \
+				        type and re.search('image/.*', type):
+					self.imgurls.append(value)
 
 
 class TOCCounter(HTMLParser):
@@ -203,17 +204,9 @@ class TOCCounter(HTMLParser):
 		HTMLParser.__init__(self)
 
 	def handle_starttag(self, tag, attrs):
-		# first ul, start processing from here
-		if tag == self.tags.ul and not self.tagstack:
-			self.tagstack.append(tag)
-		elif self.tagstack:
-			if tag == self.tags.li:
-				if self.tagstack[-1] != self.tags.ul:
-					self.tagstack.pop(self.tags.li)
-			self.tagstack.append(tag)
+		self.tagstack.append(tag)
 		
 	def handle_endtag(self, tag):
-		# if inside ul
 		if self.tagstack:
 			if tag == 'object':
 				if self.count < self.tagstack.count('param'):
