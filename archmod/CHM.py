@@ -99,7 +99,7 @@ class CHMDir(CachedSingleton):
 			counter = TOCCounter()
 			counter.feed(topicstree)
 			if counter.count > self.maxtoclvl:
-				return self.maxtoclevels
+				return self.maxtoclvl
 			else:
 				return counter.count
 		raise AttributeError(name)
@@ -117,7 +117,7 @@ class CHMDir(CachedSingleton):
 			if e.lower() == name.lower():
 				return CHMEntry(self, e).get()
 		else:
-			sys.exit('There is no %s' % name)
+			archmod.message(archmod.ERROR, 'NameError: There is no %s' % name)
 
 	def sub_mytag(self, re):
 		"""Replacing tagname with attribute"""
@@ -179,20 +179,23 @@ class CHMDir(CachedSingleton):
 			if error[0] == errno.EEXIST:
 				sys.exit('%s is already exists' % destdir)
 
-	def dump_entries(self, entries=[], output=sys.stdout):
-		"""Dump CHM entries into stdout"""
-		for e in entries:
+	def dump_html(self, output=sys.stdout):
+		"""Dump HTML data from CHM file into standard output"""
+		for e in self.html_files:
+			# if entry is auxiliary file, than skip it
+			if re.match(self.aux_re, e):
+				continue
+			print >> output, CHMEntry(self, e).get()
+
+	def chm2text(self, output=sys.stdout):
+		"""Convert CHM into Single Text file"""
+		for e in self.html_files:
 			# if entry is auxiliary file, than skip it
 			if re.match(self.aux_re, e):
 				continue
 			# to use this function you should have 'lynx' or 'elinks' installed
 			chmtotext(input=CHMEntry(self, e).get(), cmd=self.chmtotext, output=output)
 
-	def chm2text(self, output=sys.stdout):
-		"""Convert CHM into Single Text file"""
-		self.dump_entries(entries=self.html_files, output=output)
-
-	# TODO: Rewrite this method...
 	def htmldoc(self, output, format=archmod.CHM2HTML):
 		"""CHM to other file formats converter using htmldoc"""
 		# Extract CHM content into temporary directory
@@ -221,8 +224,6 @@ class CHMDir(CachedSingleton):
 				# Extract all images
 				for key, value in self.image_files.items():
 					self.extract_entry(entry=key, output_file=key.lower(), destdir=tempdir)
-#		elif format == archmod.CHM2PS:
-#			command = self.chmtops
 		htmldoc(files, command, self.toclevels, output)
 		# Remove temporary files
 		shutil.rmtree(path=tempdir)	
@@ -306,7 +307,7 @@ class CHMEntry(object):
 		"""Get correct CHM entry content"""
 		data = self.read()
 		# If entry is a html page?
-		if re.search('(?i)\.html?$', self.name):
+		if re.search('(?i)\.html?$', self.name) and data is not None:
 			# lower-casing links if needed
 			if self.parent.filename_case:
 				data = self.lower_links(data)
@@ -329,7 +330,7 @@ class CHMEntry(object):
 		# read entry content
 		data = self.read()
 		# If entry is a html page?
-		if re.search('(?i)\.html?$', self.name):
+		if re.search('(?i)\.html?$', self.name) and data is not None:
 			# lower-casing links if needed
 			if self.parent.filename_case:
 				data = self.lower_links(data)
