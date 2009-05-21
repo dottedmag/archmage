@@ -161,7 +161,11 @@ class PageLister(sgmllib.SGMLParser):
 				urlparam_flag = True
 			if urlparam_flag and key == 'value':
 				# Sometime url has incorrect slashes
-				self.pages.append('/' + re.sub("#.*$", '', value.replace('\\', '/')))
+				value = urllib2.unquote(urlparse(value.replace('\\', '/')).geturl())
+				value = '/' + re.sub("#.*$", '', value)
+				# Avoid duplicates
+				if not self.pages.count(value):
+					self.pages.append(value)
 
 
 class ImageCatcher(sgmllib.SGMLParser):
@@ -198,10 +202,10 @@ class TOCCounter(HTMLParser):
 	"""Count ToC levels"""
 	
 	tags = HTMLTags()
+	count = 0
 	
 	def __init__(self):
 		self.tagstack = TagStack()
-		self.count = 0
 		HTMLParser.__init__(self)
 
 	def handle_starttag(self, tag, attrs):
@@ -209,9 +213,30 @@ class TOCCounter(HTMLParser):
 		
 	def handle_endtag(self, tag):
 		if self.tagstack:
-			if tag == 'object':
+			if tag.lower() == 'object':
 				if self.count < self.tagstack.count('param'):
 					self.count = self.tagstack.count('param')
-			if tag != self.tags.li:
+			if tag.lower() != self.tags.li:
 				self.tagstack.pop(tag)
 
+
+# TODO: Seems to be an ugly solution...
+class HeadersCounter(HTMLParser):
+	"""Count headers tags"""
+	
+	tags = HTMLTags()
+	h1 = h2 = h3 = h4 = h5 = h6 = 0
+	
+	def handle_starttag(self, tag, attrs):
+		if tag.lower() == self.tags.h1:
+			self.h1 += 1
+		if tag.lower() == self.tags.h2:
+			self.h2 += 1
+		if tag.lower() == self.tags.h3:
+			self.h3 += 1
+		if tag.lower() == self.tags.h4:
+			self.h4 += 1
+		if tag.lower() == self.tags.h5:
+			self.h5 += 1
+		if tag.lower() == self.tags.h6:
+			self.h6 += 1
