@@ -1,3 +1,10 @@
+arCHMage 0.2.1
+==============
+Bug fixes:
+
+	* HTMLDOC doesn't working with missing <H1>...</H1> tag
+
+
 arCHMage 0.2
 ============
 Changes/New features:
@@ -16,6 +23,7 @@ Bug fixes:
 * [SF #1955872] import error
 * [SF #1805070] TOC is broken after decompilation
 * [SF #1767522] CHM -> single HTML conversion
+
 
 arCHMage 0.1.9
 ==============
