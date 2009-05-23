@@ -347,7 +347,7 @@ class CHMEntry(object):
 
 			# Delete unwanted HTML elements.
 			data = re.sub('<div .*teamlib\.gif.*\/div>', '', data)
-			data = re.sub(r'<table.*larrow\.gif.*rarrow\.gif.*\/table>', '', data)
+			data = re.sub('<table.*larrow\.gif.*rarrow\.gif.*\/table>', '', data)
 			data = re.sub('<a href.*next\.gif[^>]*><\/a>', '' ,data)
 			data = re.sub('<a href.*previous\.gif[^>]*><\/a>', '', data)
 			data = re.sub('<a href.*prev\.gif[^>]*><\/a>', '', data)
