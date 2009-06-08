@@ -1,8 +1,15 @@
+arCHMage x.x.x
+==============
+Bug fixes:
+
+* [SF #2802208] Garbled data attached to output
+
+
 arCHMage 0.2.1
 ==============
 Bug fixes:
 
-	* HTMLDOC doesn't working with missing <H1>...</H1> tag
+* HTMLDOC doesn't working with missing <H1>...</H1> tag
 
 
 arCHMage 0.2
