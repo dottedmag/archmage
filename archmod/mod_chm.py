@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from mod_python import apache
 from mimetypes import guess_type
 from archmod.CHM import CHMFile
@@ -36,11 +38,10 @@ def handler(req):
 		mimetype = 'application/chm'
 		req.content_type = mimetype
 		req.send_http_header()
-	
-	file = open(source, 'rb')
-	while 1:
-		tmp = file.read(4096)
-		if len(tmp) == 0:
-			break
-		req.write(tmp)
+		file = open(source, 'rb')
+		while 1:
+			tmp = file.read(4096)
+			if len(tmp) == 0:
+				break
+			req.write(tmp)
 	return apache.OK
