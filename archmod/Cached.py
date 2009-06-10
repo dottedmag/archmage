@@ -9,7 +9,11 @@ class Cached(object):
         CachedClass().attribute2 # returns value as if _getitem('attribute2') was called  
         CachedClass().__doc__ # returns real docstring  
     """
-    __cache = {}
+
+    def __new__(classtype, *args, **kwargs):
+        __instance = object.__new__(classtype, *args, **kwargs)
+        __instance.cache = {}
+        return __instance
        
     # to be implemented by contract in the descendant classes
     def _getitem(self, name):
@@ -19,6 +23,6 @@ class Cached(object):
         try:
             return object.__getattribute__(self, name)
         except:
-            if not self.__cache.has_key(name):
-                self.__cache[name] = self._getitem(name)
-            return self.__cache[name]
+            if not self.cache.has_key(name):
+                self.cache[name] = self._getitem(name)
+            return self.cache[name]
