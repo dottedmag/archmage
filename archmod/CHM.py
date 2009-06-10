@@ -14,7 +14,7 @@ import tempfile
 import archmod
 
 from archmod.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter, HeadersCounter
-from archmod.CachedSingleton import CachedSingleton
+from archmod.Cached import Cached
 
 # import PyCHM bindings
 try:
@@ -27,7 +27,7 @@ from archmod.chmtotext import chmtotext
 from archmod.htmldoc import htmldoc
 
 
-class CHMDir(CachedSingleton):
+class CHMDir(Cached):
 	"""Class that represent CHM content from directory"""
 
 	def __init__(self, name):

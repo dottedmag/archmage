@@ -1,3 +1,10 @@
+arCHMage 0.2.3
+==============
+Bug fixes:
+
+* Fixing caching bug (affects on mod_chm module)
+
+
 arCHMage 0.2.2
 ==============
 Bug fixes:

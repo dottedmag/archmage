@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 
 setup (name = "archmage",
        fullname = "arCHMage",
-       version = "0.2.2",
+       version = "0.2.3",
        description = "CHM(Compiled HTML) Decompressor",
        maintainer = "Basil Shubin",
        maintainer_email = "bashu@users.sourceforge.net",
@@ -15,7 +15,7 @@ setup (name = "archmage",
        keywords = ["chm", "HTML Help", "Compiled HTML", "Compressed HTML"],
        long_description = "arCHMage is an extensible reader and decompiler for files in the CHM format. arCHMage is written in the Python programming language and uses PyCHM - python bindings for CHMLIB from GnoCHM project.",
        
-       py_modules = ["archmod.CHM", "archmod.CHMParser", "archmod.CHMServer", "archmod.CachedSingleton", "archmod.mod_chm", "archmod.chmtotext", "archmod.htmldoc", "archmod.HTMLTags"],
+       py_modules = ["archmod.CHM", "archmod.CHMParser", "archmod.CHMServer", "archmod.Cached", "archmod.mod_chm", "archmod.chmtotext", "archmod.htmldoc", "archmod.HTMLTags"],
        scripts = ["archmage"],
        data_files = [("/etc/archmage", ["arch.conf"]),
     		     ("share/man/man1", ["archmage.1.gz"]),
