@@ -18,8 +18,6 @@ CHM2PDF = 6		# Convert CHM file into PDF Document
 
 # Special characters
 COMMASPACE = ', '
-BACKSLASH = '\\'
-SQUARE_BRACKETS = ['[', ']']
 LF = '\n'
 CR = '\r'
 
