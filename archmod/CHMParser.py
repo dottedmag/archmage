@@ -4,11 +4,13 @@ import re
 import mimetypes
 import sgmllib, urllib2
 
-from HTMLTags import HTMLTags
-from HTMLParser import HTMLParser, HTMLParseError, piclose
+from HTMLParser import HTMLParser, HTMLParseError
 from urlparse import urlparse
 
-import archmod
+from archmod import COMMASPACE, LF, CR
+
+START_TAG = '['
+END_TAG = ']'
 
 
 class SitemapFile(object):
@@ -20,19 +22,17 @@ class SitemapFile(object):
 	def parse(self):
 		p = SitemapParser()
 		p.feed(self.lines)
-		return (p.parsed + archmod.LF + archmod.SQUARE_BRACKETS[1], p.deftopic)
+		# parsed text + last bracket
+		return (p.parsed + LF + END_TAG)
 
 
 class TagStack(list):
 	"""from book of David Mertz 'Text Processing in Python'"""
 	
-	tags = HTMLTags()
-
 	def append(self, tag):
 		# Remove every paragraph-level tag if this is one
-		if tag.lower() in (self.tags.p, self.tags.blockquote):
-			self = TagStack([ t for t in super
-							if t not in (self.tags.p, self.tags.blockquote) ])
+		if tag.lower() in ('p', 'blockquote'):
+			self = TagStack([ t for t in super if t not in ('p', 'blockquote') ])
 		super(TagStack, self).append(tag)
 
 	def pop(self, tag):
@@ -46,107 +46,78 @@ class TagStack(list):
 		self.reverse()
 
 
-class SitemapParser(HTMLParser):
+class SitemapParser(sgmllib.SGMLParser):
 	"""Class for parsing files in SiteMap format, such as .hhc"""
 	
-	tags = HTMLTags()
-
 	def __init__(self):
 		self.tagstack = TagStack()
-		self.params = {}
-		self.parsed = ''
-		self.deftopic = ''
-		HTMLParser.__init__(self)
+		self.in_obj = False
+		self.name = self.local = self.param = ""
+		self.imagenumber = 1
+		self.parsed = ""
+		sgmllib.SGMLParser.__init__(self)
 
-	def handle_starttag(self, tag, attrs):
+	def unknown_starttag(self, tag, attrs):
 		# first ul, start processing from here
-		if tag == self.tags.ul and not self.tagstack:
+		if tag == 'ul' and not self.tagstack:
 			self.tagstack.append(tag)
-			self.parsed += archmod.LF + archmod.SQUARE_BRACKETS[0]
+			# First bracket
+			self.parsed += LF + START_TAG
+
 		# if inside ul
 		elif self.tagstack:
-			if tag == self.tags.li:
-				if self.tagstack[-1] != self.tags.ul:
-					self.parsed += archmod.SQUARE_BRACKETS[1]
-					self.tagstack.pop(self.tags.li)
+			if tag == 'li':
+				if self.tagstack[-1] != 'ul':
+					self.parsed += END_TAG
+					self.tagstack.pop('li')
 				indent = ' ' * len(self.tagstack)
-				if self.parsed != archmod.LF + archmod.SQUARE_BRACKETS[0]:
-					self.parsed += archmod.COMMASPACE
-				self.parsed += archmod.LF + indent + archmod.SQUARE_BRACKETS[0]
-			if tag == 'param':
-				self.params[str(dict(attrs)['name']).lower()] = dict(attrs)['value']
+
+				if self.parsed != LF + START_TAG:
+					self.parsed += COMMASPACE
+
+				self.parsed += LF + indent + START_TAG
+
+			if tag == 'object':
+				for x, y in attrs:
+					if x.lower() == 'type' and y.lower() == 'text/sitemap':
+						self.in_obj = True
+
+			if tag.lower() == 'param' and self.in_obj:
+				for x, y in attrs:
+					if x.lower() == 'name':
+						self.param = y.lower()
+					elif x.lower() == 'value':
+						if self.param == 'name' and not len(self.name):
+							# XXX: Remove LF and/or CR signs from name
+							self.name = y.replace(LF, '').replace(CR, '')
+							# XXX: Un-escaping double quotes :-)
+							self.name = self.name.replace('"', '\\"')
+						elif self.param == 'local':
+							# XXX: Change incorrect slashes in url
+							self.local = y.lower().replace('\\', '/').replace('..\\', '')
+						elif self.param == 'imagenumber':
+							self.imagenumber = y
 			self.tagstack.append(tag)
 
-	def handle_endtag(self, tag):
+	def unknown_endtag(self, tag):
 		# if inside ul
 		if self.tagstack:
-			if tag == self.tags.ul:
-				self.parsed += archmod.SQUARE_BRACKETS[1]
-			if tag == 'object':
-				if not self.params.has_key('imagenumber'):
-					self.params['imagenumber'] = 1
-				if not self.params.has_key('local'):
-					self.params['local'] = ''
-				if not self.params.has_key('name'):
-					self.params['name'] = ''
-				# use first page as deftopic
-				if not self.deftopic:
-					self.deftopic = self.params['local'].lower()
-				# otherwise if there index.htm inside CHM file use it instead
-				#if 'index.htm' in self.params['Local'].lower():
-				#	self.deftopic = self.params['Local'].lower()
-
-				# TODO: Rework this sometime later...
-				# Fixing new line sign
-				self.params['name'] = self.params['name'].replace(archmod.CR + archmod.LF, archmod.BACKSLASH + 'n').replace(archmod.LF, archmod.BACKSLASH + 'n')
-				self.params['local'] = self.params['local'].replace('..' + archmod.BACKSLASH, '')
-
-				# TODO: Do something with this...
-				if '"' in self.params['local']:
-					lstr = "'%s'"
-					self.params['local'] = self.params['local'].replace("'", '\\\'')
-				else:
-					lstr = '"%s"'
-					self.params['local'] = self.params['local'].replace('"', "\\\"")
-
-				if '"' in self.params['name']:
-					nstr = "'%s'"
-					self.params['name'] = self.params['name'].replace("'", '\\\'')
-				else:
-					nstr = '"%s"'
-					self.params['name'] = self.params['name'].replace('"', "\\\"")
-
-				fstr = nstr + archmod.COMMASPACE + lstr + archmod.COMMASPACE + '"%s"'
-				self.parsed += fstr % (
-					self.params['name'],
-					self.params['local'].lower(),
-					self.params['imagenumber'])
-				self.params = {}
-			if tag != self.tags.li:
+			if tag == 'ul':
+				self.parsed += END_TAG
+			if tag == 'object' and self.in_obj:
+				# "Link Name", "URL", "Icon"
+				self.parsed += "\"%s\", \"%s\", \"%s\"" % (self.name, self.local, self.imagenumber)
+				# Set to default values
+				self.in_obj = False
+				self.name = self.local = ""
+				self.imagenumber = 1
+			if tag != 'li':
 				self.tagstack.pop(tag)
-
-	def parse_starttag(self, i):
-		try:
-			return HTMLParser.parse_starttag(self, i)
-		except HTMLParseError:
-			try:
-				return piclose.search(self.rawdata, i).end()
-			except AttributeError:
-				return -1
-
-	def parse_endtag(self, i):
-		try:
-			return HTMLParser.parse_endtag(self, i)
-		except HTMLParseError:
-			try:
-				return piclose.search(self.rawdata, i).end()
-			except:
-				return -1
 
 
 class PageLister(sgmllib.SGMLParser):
 	"""
-	parser of the chm.chm GetTopicsTree() method that retrieves the URL of the HTML
+	Parser of the chm.chm GetTopicsTree() method that retrieves the URL of the HTML
 	page embedded in the CHM file.
 	"""
 
@@ -170,7 +141,7 @@ class PageLister(sgmllib.SGMLParser):
 
 class ImageCatcher(sgmllib.SGMLParser):
 	"""
-	finds image urls in the current html page, so to take them out from the chm file.
+	Finds image urls in the current html page, so to take them out from the chm file.
 	"""
 
 	def reset(self):
@@ -189,8 +160,9 @@ class ImageCatcher(sgmllib.SGMLParser):
 			if key.lower() == 'href':
 				url = urlparse(value)
 				value = urllib2.unquote(url.geturl())
+				# Remove unwanted crap
 				value = '/' + re.sub("#.*$", '', value)
-				# Check the file mimetype
+				# Check file's mimetype
 				type = mimetypes.guess_type(value)[0]
 				# Avoid duplicates in the list of image URLs.
 				if not url.scheme and not self.imgurls.count(value) and \
@@ -199,9 +171,8 @@ class ImageCatcher(sgmllib.SGMLParser):
 
 
 class TOCCounter(HTMLParser):
-	"""Count ToC levels"""
+	"""Count Table of Contents levels"""
 	
-	tags = HTMLTags()
 	count = 0
 	
 	def __init__(self):
@@ -216,27 +187,26 @@ class TOCCounter(HTMLParser):
 			if tag.lower() == 'object':
 				if self.count < self.tagstack.count('param'):
 					self.count = self.tagstack.count('param')
-			if tag.lower() != self.tags.li:
+			if tag.lower() != 'li':
 				self.tagstack.pop(tag)
 
 
-# TODO: Seems to be an ugly solution...
+# XXX: Seems to be an ugly solution...
 class HeadersCounter(HTMLParser):
 	"""Count headers tags"""
 	
-	tags = HTMLTags()
 	h1 = h2 = h3 = h4 = h5 = h6 = 0
 	
 	def handle_starttag(self, tag, attrs):
-		if tag.lower() == self.tags.h1:
+		if tag.lower() == 'h1':
 			self.h1 += 1
-		if tag.lower() == self.tags.h2:
+		if tag.lower() == 'h2':
 			self.h2 += 1
-		if tag.lower() == self.tags.h3:
+		if tag.lower() == 'h3':
 			self.h3 += 1
-		if tag.lower() == self.tags.h4:
+		if tag.lower() == 'h4':
 			self.h4 += 1
-		if tag.lower() == self.tags.h5:
+		if tag.lower() == 'h5':
 			self.h5 += 1
-		if tag.lower() == self.tags.h6:
+		if tag.lower() == 'h6':
 			self.h6 += 1
