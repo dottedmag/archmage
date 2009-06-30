@@ -4,6 +4,7 @@ import re
 import mimetypes
 import sgmllib, urllib2
 
+from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser, HTMLParseError
 from urlparse import urlparse
 
@@ -17,6 +18,12 @@ class SitemapFile(object):
 	"""Sitemap file class"""
 
 	def __init__(self, lines):
+		# XXX: Cooking tasty beautiful soup ;-)
+		soup = BeautifulSoup(lines)
+		lines = soup.prettify()
+		# XXX: Removing empty tags
+		lines = re.sub(re.compile(r'<ul>\s*</ul>', re.I | re.M), '', lines)
+		lines = re.sub(re.compile(r'<li>\s*</li>', re.I | re.M), '', lines)
 		self.lines = lines
 
 	def parse(self):
@@ -67,6 +74,7 @@ class SitemapParser(sgmllib.SGMLParser):
 		# if inside ul
 		elif self.tagstack:
 			if tag == 'li':
+				# append closing bracket if needed
 				if self.tagstack[-1] != 'ul':
 					self.parsed += END_TAG
 					self.tagstack.pop('li')
