@@ -31,6 +31,7 @@ arCHMage requires the following libraries:
   * Python 2.3 or later
   * PyCHM
   * CHMLib
+  * Beautiful Soup (Python HTML/XML parser)
 
 Other (optional) dependencies:
 
