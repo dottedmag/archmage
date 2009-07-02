@@ -41,7 +41,7 @@ class CHMDir(Cached):
 
 		# Get and parse 'Table of Contents'
 		topicstree = self.get_entry(self.topics)
-		self.contents, self.deftopic = SitemapFile(topicstree).parse()
+		self.contents = SitemapFile(topicstree).parse()
 
 	def _getitem(self, name):
 		# Get all entries
@@ -84,15 +84,33 @@ class CHMDir(Cached):
 			for e in self.entries:
 				if e.lower().endswith('.hhc'):
 					return e
+		if name == 'deftopic':
+			# use first page as deftopic. Note: without heading slash
+			if self.html_files[0].startswith('/'):
+				return self.html_files[0].replace('/', '', 1).lower()
+			return self.html_files[0].lower()
 		# Get index file
 		if name == 'index':
 			for e in self.entries:
 				if e.lower().endswith('.hhk'):
 					return e
+		# Get frontpage name
+		if name == 'frontpage':
+			frontpage = os.path.join('/', 'index.html')
+			index = 2 # index2.html and etc.
+			for filename in self.entries:
+				if frontpage == filename:
+					frontpage = os.path.join('/', ('index%s.html' % index))
+					index += 1
+			return frontpage
 		# Get all templates files
 		if name == 'templates':
-			return [ os.path.join('/', file) for file in os.listdir(self.templates_dir)
-				if os.path.isfile(os.path.join(self.templates_dir, file)) ]
+			templates = []
+			for file in os.listdir(self.templates_dir):
+				if os.path.isfile(os.path.join(self.templates_dir, file)):
+					if os.path.join('/', file) not in self.entries:
+						templates.append(os.path.join('/', file))
+			return templates
 		# Get ToC levels
 		if name == 'toclevels':
 			topicstree = self.get_entry(self.topics)
@@ -104,7 +122,7 @@ class CHMDir(Cached):
 				return counter.count
 		# HTMLDOC doesn't working with missing <H1>...</H1> tag, 
 		# so we need to fix it (for first page only)
-		# TODO: Seems to be an ugly solution...
+		# XXX: Seems to be an ugly solution...
 		if name == 'html_header_tags':
 			html_header_tags = {'h1': 0, 'h2' : 0, 'h3' : 0, 'h4' : 0, 'h5' : 0, 'h6' :0}
 			for html_file in self.html_files:
@@ -119,6 +137,7 @@ class CHMDir(Cached):
 				html_header_tags.update(tmp_dict)
 			return html_header_tags
 		# Number of missing H[1-6] tags
+		# XXX: Find a better solution!
 		if name == 'html_header_tags_missing':
 			if self.html_header_tags['h6'] == 0:
 				missing = 6
@@ -141,14 +160,14 @@ class CHMDir(Cached):
 		"""Get CHM entry by name"""
 		# show index page or any other substitute
 		if name == '/':
-			name = '/index.html'
-		if name in self.templates:
+			name = self.frontpage
+		if name in self.templates or name == self.frontpage:
 			return self.get_template(name)
 		if name.lower() in [ os.path.join('/icons', icon.lower()) for icon in os.listdir(self.icons_dir) ]:
 			return open(os.path.join(self.icons_dir, os.path.basename(name))).read()
 		for e in self.entries:
 			if e.lower() == name.lower():
-				return CHMEntry(self, e).get()
+				return CHMEntry(self, e, frontpage=self.frontpage).get()
 		else:
 			archmod.message(archmod.ERROR, 'NameError: There is no %s' % name)
 
@@ -162,17 +181,22 @@ class CHMDir(Cached):
 
 	def get_template(self, name):
 		"""Get template file by it's name"""
-		tpl = open(os.path.join(self.templates_dir, os.path.basename(name))).read()
+		if name == self.frontpage:
+			tpl = open(os.path.join(self.templates_dir, os.path.basename('index.html'))).read()
+		else:
+			tpl = open(os.path.join(self.templates_dir, os.path.basename(name))).read()
 		return re.sub('\<%(.+?)%\>', self.sub_mytag, tpl)
 
 	def process_templates(self, destdir="."):
 		"""Process templates"""
 		for template in self.templates:
 			open(os.path.join(destdir, os.path.basename(template)), 'w').write(self.get_template(template))
+		if self.frontpage not in self.templates:
+			open(os.path.join(destdir, os.path.basename(self.frontpage)), 'w').write(self.get_template('index.html'))
 		if not os.path.exists(os.path.join(destdir, 'icons/')):
 			shutil.copytree(os.path.join(self.icons_dir), os.path.join(destdir, 'icons/'))
 
-	def extract_entry(self, entry, output_file, destdir=".", correct_file=False):
+	def extract_entry(self, entry, output_file, destdir=".", correct=False):
 		# process output entry, remove first '/' in entry name
 		fname = string.lower(output_file).replace('/', '', 1)
 		# get directory name for file fname if any
@@ -186,18 +210,18 @@ class CHMDir(Cached):
 			if self.fs_encoding:
 				fname = fname.decode('utf-8').encode(self.fs_encoding)
 			# write CHM entry content into the file, corrected or as is
-			if correct_file:
+			if correct:
 				open(os.path.join(destdir, fname), 'w').writelines(CHMEntry(self, entry).correct())
 			else:
 				open(os.path.join(destdir, fname), 'w').writelines(CHMEntry(self, entry).get())
 				
-	def extract_entries(self, entries=[], destdir=".", correct_file=False):
+	def extract_entries(self, entries=[], destdir=".", correct=False):
 		"""Extract raw CHM entries into the files"""
 		for e in entries:
 			# if entry is auxiliary file, than skip it
 			if re.match(self.aux_re, e):
 				continue
-			self.extract_entry(e, output_file=e, destdir=destdir, correct_file=correct_file)
+			self.extract_entry(e, output_file=e, destdir=destdir, correct=correct)
 
 	def extract(self, destdir):
 		"""Extract CHM file content into FS"""
@@ -234,7 +258,7 @@ class CHMDir(Cached):
 		# Extract CHM content into temporary directory
 		output = output.replace(' ', '_')
 		tempdir = tempfile.mkdtemp(prefix=output.rsplit('.', 1)[0])
-		self.extract_entries(entries=self.html_files, destdir=tempdir, correct_file=True)
+		self.extract_entries(entries=self.html_files, destdir=tempdir, correct=True)
 		# List of temporary files
 		files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files ]
 		if format == archmod.CHM2HTML:
@@ -300,11 +324,13 @@ class CHMFile(CHMDir):
 class CHMEntry(object):
 	"""Class for CHM file entry"""
 
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, frontpage='index.html'):
 		# parent CHM file
 		self.parent = parent
 		# object inside CHM file
 		self.name = name
+		# frontpage name to substitute
+		self.frontpage = os.path.basename(frontpage)
 
 	def read(self):
 		"""Read CHM entry content"""
@@ -331,8 +357,8 @@ class CHMEntry(object):
 
 		js = """<body><script language="javascript">
 		if ((window.name != "content") && (navigator.userAgent.indexOf("Opera") <= -1) )
-		document.write("<center><a href='%sindex.html?page=%s'>show framing</a></center>")
-		</script>""" % ( '../' * depth, name )
+		document.write("<center><a href='%s%s?page=%s'>show framing</a></center>")
+		</script>""" % ( '../' * depth, self.frontpage, name )
 		
 		return re.sub('(?i)<\s*body\s*>', js, text)
 
