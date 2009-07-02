@@ -17,7 +17,7 @@ def htmldoc(input, cmd, options, toclevels, output):
 		input - list of input html files
 		cmd - full path to htmldoc command
 		options - htmldoc options from arch.conf
-		toclevels - ToC levels as htmldoc option
+		toclevels - number of ToC levels as htmldoc option
 		output - output file (single html, ps, pdf and etc)
 	"""
 	if toclevels:
