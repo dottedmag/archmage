@@ -1,5 +1,5 @@
 __all__ = ['CHM', 'CHMServer', 'mod_chm']
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 import sys, os
 

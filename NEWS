@@ -1,3 +1,10 @@
+arCHMage 0.2.4
+==============
+Bug fixes:
+
+* [SF #2812715] Incorrect arch_contents.html generation on irrlicht.chm
+
+
 arCHMage 0.2.3
 ==============
 Bug fixes:
