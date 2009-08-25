@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# Copyright (c) 2009 Basil Shubin <bashu@users.sourceforge.net>
+
 import re
 import mimetypes
 import sgmllib, urllib2
@@ -35,7 +37,7 @@ class SitemapFile(object):
 
 class TagStack(list):
 	"""from book of David Mertz 'Text Processing in Python'"""
-	
+
 	def append(self, tag):
 		# Remove every paragraph-level tag if this is one
 		if tag.lower() in ('p', 'blockquote'):
@@ -55,7 +57,7 @@ class TagStack(list):
 
 class SitemapParser(sgmllib.SGMLParser):
 	"""Class for parsing files in SiteMap format, such as .hhc"""
-	
+
 	def __init__(self):
 		self.tagstack = TagStack()
 		self.in_obj = False
@@ -180,16 +182,16 @@ class ImageCatcher(sgmllib.SGMLParser):
 
 class TOCCounter(HTMLParser):
 	"""Count Table of Contents levels"""
-	
+
 	count = 0
-	
+
 	def __init__(self):
 		self.tagstack = TagStack()
 		HTMLParser.__init__(self)
 
 	def handle_starttag(self, tag, attrs):
 		self.tagstack.append(tag)
-		
+
 	def handle_endtag(self, tag):
 		if self.tagstack:
 			if tag.lower() == 'object':
@@ -199,22 +201,22 @@ class TOCCounter(HTMLParser):
 				self.tagstack.pop(tag)
 
 
-# XXX: Seems to be an ugly solution...
-class HeadersCounter(HTMLParser):
-	"""Count headers tags"""
-	
-	h1 = h2 = h3 = h4 = h5 = h6 = 0
-	
-	def handle_starttag(self, tag, attrs):
-		if tag.lower() == 'h1':
-			self.h1 += 1
-		if tag.lower() == 'h2':
-			self.h2 += 1
-		if tag.lower() == 'h3':
-			self.h3 += 1
-		if tag.lower() == 'h4':
-			self.h4 += 1
-		if tag.lower() == 'h5':
-			self.h5 += 1
-		if tag.lower() == 'h6':
-			self.h6 += 1
+## XXX: Seems to be an ugly solution...
+#class HeadersCounter(HTMLParser):
+#	"""Count headers tags"""
+#
+#	h1 = h2 = h3 = h4 = h5 = h6 = 0
+#
+#	def handle_starttag(self, tag, attrs):
+#		if tag.lower() == 'h1':
+#			self.h1 += 1
+#		if tag.lower() == 'h2':
+#			self.h2 += 1
+#		if tag.lower() == 'h3':
+#			self.h3 += 1
+#		if tag.lower() == 'h4':
+#			self.h4 += 1
+#		if tag.lower() == 'h5':
+#			self.h5 += 1
+#		if tag.lower() == 'h6':
+#			self.h6 += 1
