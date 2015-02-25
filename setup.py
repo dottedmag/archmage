@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
-setup (name = "archmage",
+setup(name = "archmage",
        fullname = "arCHMage",
        version = "0.2.4",
        description = "CHM(Compiled HTML) Decompressor",
