@@ -12,7 +12,7 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
 def chmtotext(input, cmd, output=sys.stdout):
-	"""CHM to Text converter"""
-	proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)
-	proc.stdin.write(input)
-	print >> output, proc.communicate()[0]
+    """CHM to Text converter"""
+    proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)
+    proc.stdin.write(input)
+    print >> output, proc.communicate()[0]
