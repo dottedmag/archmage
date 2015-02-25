@@ -16,7 +16,9 @@ setup(
     keywords = ["chm", "HTML Help", "Compiled HTML", "Compressed HTML"],
     long_description = "arCHMage is an extensible reader and decompiler for files in the CHM format. arCHMage is written in the Python programming language and uses PyCHM - python bindings for CHMLIB from GnoCHM project.",
     py_modules = ["archmod.CHM", "archmod.CHMParser", "archmod.CHMServer", "archmod.Cached", "archmod.mod_chm", "archmod.chmtotext", "archmod.htmldoc"],
-    scripts = ["archmage"],
+    entry_points={
+        'console_scripts': ['archmage = archmod.cli:main'],
+    },
     data_files = [("/etc/archmage", ["arch.conf"]),
                   ("share/man/man1", ["archmage.1.gz"]),
                   ("share/archmage/templates",

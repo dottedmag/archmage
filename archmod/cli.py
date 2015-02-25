@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # arCHMage -- extensible reader and decompiler for files in the CHM format.
@@ -163,7 +162,3 @@ def main():
         source.htmldoc(options.output, options.mode)
     elif options.mode == archmod.EXTRACT:
         source.extract(options.output)
-
-
-if __name__ == '__main__':
-    main()
