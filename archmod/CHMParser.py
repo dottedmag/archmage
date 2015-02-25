@@ -199,24 +199,3 @@ class TOCCounter(HTMLParser):
                     self.count = self.tagstack.count('param')
             if tag.lower() != 'li':
                 self.tagstack.pop(tag)
-
-
-## XXX: Seems to be an ugly solution...
-#class HeadersCounter(HTMLParser):
-#    """Count headers tags"""
-#
-#    h1 = h2 = h3 = h4 = h5 = h6 = 0
-#
-#    def handle_starttag(self, tag, attrs):
-#        if tag.lower() == 'h1':
-#            self.h1 += 1
-#        if tag.lower() == 'h2':
-#            self.h2 += 1
-#        if tag.lower() == 'h3':
-#            self.h3 += 1
-#        if tag.lower() == 'h4':
-#            self.h4 += 1
-#        if tag.lower() == 'h5':
-#            self.h5 += 1
-#        if tag.lower() == 'h6':
-#            self.h6 += 1

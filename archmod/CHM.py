@@ -120,41 +120,6 @@ class CHMDir(Cached):
                 return self.maxtoclvl
             else:
                 return counter.count
-        # XXX: It's a shame I wrote such crap, call me JACM :)
-#        # HTMLDOC doesn't working with missing <H1>...</H1> tag,
-#        # so we need to fix it (for first page only)
-#        # XXX: Seems to be an ugly solution...
-#        if name == 'html_header_tags':
-#            html_header_tags = {'h1': 0, 'h2' : 0, 'h3' : 0, 'h4' : 0, 'h5' : 0, 'h6' :0}
-#            for html_file in self.html_files:
-#                counter = HeadersCounter()
-#                counter.feed(CHMEntry(self, html_file).read())
-#                tmp_dict = {'h1': html_header_tags['h1'] + counter.h1,
-#                            'h2': html_header_tags['h2'] + counter.h2,
-#                            'h3': html_header_tags['h3'] + counter.h3,
-#                            'h4': html_header_tags['h4'] + counter.h4,
-#                            'h5': html_header_tags['h5'] + counter.h5,
-#                            'h6': html_header_tags['h6'] + counter.h6}
-#                html_header_tags.update(tmp_dict)
-#            return html_header_tags
-#        # Number of missing H[1-6] tags
-#        # XXX: Find a better solution!
-#        if name == 'html_header_tags_missing':
-#            if self.html_header_tags['h6'] == 0:
-#                missing = 6
-#            if self.html_header_tags['h5'] == 0:
-#                missing = 5
-#            if self.html_header_tags['h4'] == 0:
-#                missing = 4
-#            if self.html_header_tags['h3'] == 0:
-#                missing = 3
-#            if self.html_header_tags['h2'] == 0:
-#                missing = 2
-#            if self.html_header_tags['h1'] == 0:
-#                missing = 1
-#            else:
-#                missing = 0
-#            return missing
         raise AttributeError(name)
 
     def get_entry(self, name):
@@ -382,14 +347,6 @@ class CHMEntry(object):
             data = re.sub('"[^"]*previous\.gif"', '""', data)
             data = re.sub('"[^"]*prev\.gif"', '""', data)
             data = re.sub('"[^"]*next\.gif"', '""', data)
-            # XXX: It's a shame I wrote such crap, call me JACM
-#            # HTMLDOC doesn't working with missing <H1>...</H1> tag,
-#            # so we need to fix it
-#            # TODO: Seems to be an ugly solution...
-#            if not self.parent.html_header_tags['h1']:
-#                for header in xrange(self.parent.html_header_tags_missing + 1, 7):
-#                    data =  re.sub(r'<[hH]%s' % str(header), r'<h%s' % str(header - self.parent.html_header_tags_missing), data)
-#                    data = re.sub(r'</[hH]%s>' % str(header), r'</h%s>' % str(header - self.parent.html_header_tags_missing), data)
         if data is not None:
             return data
         else:
