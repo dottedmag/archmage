@@ -56,54 +56,54 @@ from archmod.CHMServer import CHMServer
 program = sys.argv[0]
 
 def usage(code=archmod.OK, msg=''):
-	"""Show application usage and quit"""
-	archmod.message(code, __doc__ % globals())
-	archmod.message(code, msg)
-	sys.exit(code)
+    """Show application usage and quit"""
+    archmod.message(code, __doc__ % globals())
+    archmod.message(code, msg)
+    sys.exit(code)
 
 
 def parseargs():
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
-								['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
-	except getopt.error, msg:
-		usage(archmod.ERROR, msg)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
+                                ['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
+    except getopt.error, msg:
+        usage(archmod.ERROR, msg)
 
-	class Options:
-		mode = None        # EXTRACT or HTTPSERVER or other
-		port = None        # HTTP port number
-		chmfile = None     # CHM File to view/extract
-		output = None      # Output file or directory
+    class Options:
+        mode = None        # EXTRACT or HTTPSERVER or other
+        port = None        # HTTP port number
+        chmfile = None     # CHM File to view/extract
+        output = None      # Output file or directory
 
-	options = Options()
+    options = Options()
 
-	for opt, arg in opts:
-		if opt in ('-h', '--help'):
-			usage()
-		elif opt in ('-V', '--version'):
-			archmod.message(archmod.OK, archmod.__version__)
-			sys.exit(archmod.OK)
-		elif opt in ('-p', '--port'):
-			if options.mode is not None:
-				sys.exit('-x and -p or -c are mutually exclusive')
-			options.mode = archmod.HTTPSERVER
-			try:
-				options.port = int(arg)
-			except ValueError, msg:
-				sys.exit('Invalid port number: %s' % msg)
-		elif opt in ('-c', '--convert'):
-			if options.mode is not None:
-				sys.exit('-x and -p or -c are mutually exclusive')
-			options.mode = archmod.output_format(str(arg))
-		elif opt in ('-x', '--extract'):
-			if options.mode is not None:
-				sys.exit('-x and -p or -c are mutually exclusive')
-			options.mode = archmod.EXTRACT
-		elif opt in ('-d', '--dump'):
-			if options.mode is not None:
-				sys.exit('-d should be used without any other options')
-			options.mode = archmod.DUMPHTML
-		else:
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage()
+        elif opt in ('-V', '--version'):
+            archmod.message(archmod.OK, archmod.__version__)
+            sys.exit(archmod.OK)
+        elif opt in ('-p', '--port'):
+            if options.mode is not None:
+                sys.exit('-x and -p or -c are mutually exclusive')
+            options.mode = archmod.HTTPSERVER
+            try:
+                options.port = int(arg)
+            except ValueError, msg:
+                sys.exit('Invalid port number: %s' % msg)
+        elif opt in ('-c', '--convert'):
+            if options.mode is not None:
+                sys.exit('-x and -p or -c are mutually exclusive')
+            options.mode = archmod.output_format(str(arg))
+        elif opt in ('-x', '--extract'):
+            if options.mode is not None:
+                sys.exit('-x and -p or -c are mutually exclusive')
+            options.mode = archmod.EXTRACT
+        elif opt in ('-d', '--dump'):
+            if options.mode is not None:
+                sys.exit('-d should be used without any other options')
+            options.mode = archmod.DUMPHTML
+        else:
             assert False, (opt, arg)
 
     # Sanity checks
