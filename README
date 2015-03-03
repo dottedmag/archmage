@@ -74,7 +74,6 @@ There is several ways to use arCHMage package now:
       pdf - Adobe PDF file format
 
    Note: To use this feature you must have htmldoc installed. 
-   See /etc/arch.conf for details.
 
 4) Run as http-server, which will publish chm file contents on specified port.
 
