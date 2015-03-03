@@ -1,0 +1,3 @@
+include archmod/arch.conf
+recursive-include archmod/templates *.html *.css *.gif
+include AUTHORS COPYING INSTALL NEWS README archmage.1
