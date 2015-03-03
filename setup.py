@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+import version
 
 setup(
     name = "archmage",
     fullname = "arCHMage",
-    version = "0.2.4",
+    version=version.getVersion(),
     description = "CHM decompressor",
     maintainer = "Basil Shubin",
     maintainer_email = "bashu@users.sourceforge.net",
