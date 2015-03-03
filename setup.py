@@ -13,7 +13,7 @@ setup(
     author = "Eugeny Korekin",
     author_email = "az@ftc.ru",
     url = "archmage.sf.net",
-    license = "GPL",
+    license = "GPLv2+",
     keywords = ["chm", "HTML Help", "Compiled HTML", "Compressed HTML"],
     long_description = "arCHMage is a reader and decompressor for CHM format",
     packages=find_packages(),
