@@ -1,7 +1,7 @@
 __all__ = ['CHM', 'CHMServer', 'mod_chm']
 __version__ = '0.2.4'
 
-import sys, os
+import sys, os, pkg_resources
 
 # Return codes
 OK = 0
@@ -26,7 +26,7 @@ user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
 if os.path.exists(user_config):
     config = user_config
 else:
-    config = '/etc/archmage/arch.conf'
+    config = pkg_resources.resource_filename('archmod', 'arch.conf')
 
 # Miscellaneous auxiliary functions
 def message(code=OK, msg=''):
