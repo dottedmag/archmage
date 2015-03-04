@@ -42,6 +42,7 @@ except ImportError, msg:
 from archmod.chmtotext import chmtotext
 from archmod.htmldoc import htmldoc
 
+PARENT_RE = re.compile(r'(^|/|\\)\.\.(/|\\|$)')
 
 class CHMDir(Cached):
     """Class that represent CHM content from directory"""
@@ -207,6 +208,8 @@ class CHMDir(Cached):
             # if entry is auxiliary file, than skip it
             if re.match(self.aux_re, e):
                 continue
+            if PARENT_RE.search(e):
+                raise RuntimeError('Giving up on malicious name: %s' % e)
             self.extract_entry(e, output_file=e, destdir=destdir, correct=correct)
 
     def extract(self, destdir):
