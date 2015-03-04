@@ -1,7 +1,7 @@
 arCHMage
 ========
 
-arCHMage is an reader and decompiler for files in the CHM format.  This is the
+arCHMage is a reader and decompiler for files in the CHM format.  This is the
 format used by Microsoft HTML Help, and is also known as Compiled HTML.
 
 Usage
