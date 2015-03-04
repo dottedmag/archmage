@@ -37,16 +37,20 @@ class SitemapFile(object):
 
     def __init__(self, lines):
         # XXX: Cooking tasty beautiful soup ;-)
-        soup = BeautifulSoup(lines)
-        lines = soup.prettify()
-        # XXX: Removing empty tags
-        lines = re.sub(re.compile(r'<ul>\s*</ul>', re.I | re.M), '', lines)
-        lines = re.sub(re.compile(r'<li>\s*</li>', re.I | re.M), '', lines)
-        self.lines = lines
+        if lines:
+            soup = BeautifulSoup(lines)
+            lines = soup.prettify()
+            # XXX: Removing empty tags
+            lines = re.sub(re.compile(r'<ul>\s*</ul>', re.I | re.M), '', lines)
+            lines = re.sub(re.compile(r'<li>\s*</li>', re.I | re.M), '', lines)
+            self.lines = lines
+        else:
+            self.lines = None
 
     def parse(self):
         p = SitemapParser()
-        p.feed(self.lines)
+        if self.lines:
+            p.feed(self.lines)
         # parsed text + last bracket
         return (p.parsed + LF + END_TAG)
 

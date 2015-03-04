@@ -56,7 +56,10 @@ class CHMDir(Cached):
         self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
 
         # Get and parse 'Table of Contents'
-        self.topicstree = self.get_entry(self.topics)
+        try:
+            self.topicstree = self.get_entry(self.topics)
+        except AttributeError:
+            self.topicstree = None
         self.contents = SitemapFile(self.topicstree).parse()
 
     def _getitem(self, name):
@@ -156,7 +159,10 @@ class CHMDir(Cached):
         try:
             res = eval('self.' + re.group(1))
         except:
-            res = eval(re.group(1))
+            try:
+                res = eval(re.group(1))
+            except:
+                res = ''
         return res
 
     def get_template(self, name):
