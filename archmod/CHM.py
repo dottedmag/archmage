@@ -56,8 +56,8 @@ class CHMDir(Cached):
         self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
 
         # Get and parse 'Table of Contents'
-        topicstree = self.get_entry(self.topics)
-        self.contents = SitemapFile(topicstree).parse()
+        self.topicstree = self.get_entry(self.topics)
+        self.contents = SitemapFile(self.topicstree).parse()
 
     def _getitem(self, name):
         # Get all entries
@@ -72,9 +72,8 @@ class CHMDir(Cached):
         # retrieves the list of HTML files contained into the CHM file, **in order** (that's the important bit).
         # (actually performed by the PageLister class)
         if name == 'html_files':
-            topicstree = self.get_entry(self.topics)
             lister = PageLister()
-            lister.feed(topicstree)
+            lister.feed(self.topicstree)
             return lister.pages
         # retrieves the list of images urls contained into the CHM file.
         # (actually performed by the ImageCatcher class)
@@ -129,9 +128,8 @@ class CHMDir(Cached):
             return templates
         # Get ToC levels
         if name == 'toclevels':
-            topicstree = self.get_entry(self.topics)
             counter = TOCCounter()
-            counter.feed(topicstree)
+            counter.feed(self.topicstree)
             if counter.count > self.maxtoclvl:
                 return self.maxtoclvl
             else:
