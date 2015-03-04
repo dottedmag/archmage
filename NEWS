@@ -1,3 +1,9 @@
+arCHMage 0.3.1
+==============
+Bug fixes:
+
+* [CVE-2015-1589] Fixed directory traversal bug
+
 arCHMage 0.3
 ============
 Changes:
@@ -7,7 +13,6 @@ Changes:
 
 Bug fixes:
 
-* [CVE-2015-1589] Fixed directory traversal bug
 * [Debian #776097] Fixed parsing CHM files with no topic tree
 
 arCHMage 0.2.4
