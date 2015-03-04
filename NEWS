@@ -1,3 +1,15 @@
+arCHMage 0.3
+============
+Changes:
+
+* Global /etc/archmage/arch.conf configuration file has been moved to the
+  package contents and is no longer customizable
+
+Bug fixes:
+
+* [CVE-2015-1589] Fixed directory traversal bug
+* [Debian #776097] Fixed parsing CHM files with no topic tree
+
 arCHMage 0.2.4
 ==============
 Bug fixes:
