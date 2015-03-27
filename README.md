@@ -4,6 +4,10 @@ arCHMage
 arCHMage is a reader and decompiler for files in the CHM format.  This is the
 format used by Microsoft HTML Help, and is also known as Compiled HTML.
 
+[![Latest Version](https://pypip.in/version/archmage/badge.svg)](https://pypi.python.org/pypi/archmage/)
+[![Downloads](https://pypip.in/download/archmage/badge.svg)](https://pypi.python.org/pypi/archmage/)
+[![License](https://pypip.in/license/archmage/badge.svg)](https://pypi.python.org/pypi/archmage/)
+
 Usage
 =====
 
