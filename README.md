@@ -33,20 +33,15 @@ This feature requires `htmldoc(1)`, and `lynx(1)` or `elinks(1)` installed.
 Serve CHM contents over HTTP
 ----------------------------
 
-    archmage -p <port> <chmfile|unpacked chm dir>
+    archmage -p <port> <chmfile|dir with chm files>
 
 Serve CHM contents from Apache
 ------------------------------
 
-Add those lines to your `httpd.conf` and restart Apache:
-
-    AddHandler python-program .chm
-    PythonHandler archmod.mod_chm
+TODO: document how to proxy Apache to running `archmage -p`.
 
 Then `http://youserver/sample.chm` will serve raw CHM file, and
 `http://yourserver/sample.chm/` will serve unpacked CHM file view.
-
-This feature requires `mod_python`.
 
 Installation
 ============
@@ -63,8 +58,6 @@ Optional dependencies:
     (Debian/Ubuntu: `htmldoc`)
   * Lynx or ELinks - converting to plain text
     (Debian/Ubuntu: `lynx`)
-  * mod_python - Apache module
-    (Debian/Ubuntu: `libapache2-mod-python`)
 
 Use the regular `setup.py` stanza:
 

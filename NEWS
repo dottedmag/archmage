@@ -1,3 +1,13 @@
+arCHMage X.Y
+============
+New features:
+
+* archmage -p can now serve a whole directory with .chm files
+
+Changes:
+
+* mod_chm was removed. Use archmage -p and proxy requests from Apache.
+
 arCHMage 0.3.1
 ==============
 Bug fixes:

@@ -50,17 +50,7 @@ specified port:
 
 	archmage \-p <port> <chmfile>
 .PP
-3) Tune your apache to publish chm file contents if there is trailing
-slash in request to that file (you will need working mod_python for
-that):
-
-	Add that lines to your httpd.conf:
-
-	   AddHandler python-program .chm 
-.br
-	   PythonHandler archmod.mod_chm
-
-	Restart apache.
+3) TODO: document how to proxy Apache to running `archmage -p`.
 .PP
 Let's suppose, you have file sample.chm in DocumentRoot of your
 apache. After that tuning you can receive raw chm file, if you point

@@ -42,8 +42,8 @@ Where:
     -p number
     --port=number
         Acts as HTTP server on specified port number, so you can read
-        CHM file with your favorite browser. You can specify a directory
-        with decompressed content.
+        CHM file with your favorite browser. You can specify a single file
+        or a directory with .chm files to be served as an argument.
 
     -d / --dump
         Dump HTML data from CHM file into standard output.
