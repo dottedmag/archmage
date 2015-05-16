@@ -60,7 +60,7 @@ import getopt
 
 import archmod
 from archmod.CHM import CHMFile, CHMDir
-from archmod.CHMServer import CHMServer
+from archmod.CHMServer import ChmServer
 
 
 program = sys.argv[0]
@@ -161,7 +161,7 @@ def main():
         CHMFile(options.chmfile) or CHMDir(options.chmfile)
 
     if options.mode == archmod.HTTPSERVER:
-        CHMServer(source, port=options.port).run()
+        ChmServer(options.chmfile, '', options.port).serve_forever()
     elif options.mode == archmod.DUMPHTML:
         source.dump_html()
     elif options.mode == archmod.CHM2TXT:
