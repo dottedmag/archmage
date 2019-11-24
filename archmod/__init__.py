@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 # Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-__all__ = ['CHM', 'CHMServer', 'mod_chm']
+__all__ = ['CHM']
 __version__ = '0.2.4'
 
 import sys, os, pkg_resources
@@ -30,7 +30,6 @@ ERROR = 1
 
 # Global variables
 EXTRACT = 1        # Extract CHM content
-HTTPSERVER = 2    # Act as standalone HTTP server
 DUMPHTML = 3    # Dump CHM file as plain text
 CHM2TXT = 4        # Convert CHM file into Single Text file
 CHM2HTML = 5    # Convert CHM file into Single HTML file

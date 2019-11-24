@@ -40,12 +40,6 @@ Where:
             text - Plain Text file
             pdf - Adobe PDF file format
 
-    -p number
-    --port=number
-        Acts as HTTP server on specified port number, so you can read
-        CHM file with your favorite browser. You can specify a single file
-        or a directory with .chm files to be served as an argument.
-
     -d / --dump
         Dump HTML data from CHM file into standard output.
 
@@ -61,7 +55,6 @@ import getopt
 
 import archmod
 from archmod.CHM import CHMFile, CHMDir
-from archmod.CHMServer import ChmServer
 
 
 program = sys.argv[0]
@@ -81,8 +74,7 @@ def parseargs():
         usage(archmod.ERROR, msg)
 
     class Options:
-        mode = None        # EXTRACT or HTTPSERVER or other
-        port = None        # HTTP port number
+        mode = None        # EXTRACT or other
         chmfile = None     # CHM File to view/extract
         output = None      # Output file or directory
 
@@ -94,21 +86,13 @@ def parseargs():
         elif opt in ('-V', '--version'):
             archmod.message(archmod.OK, archmod.__version__)
             sys.exit(archmod.OK)
-        elif opt in ('-p', '--port'):
-            if options.mode is not None:
-                sys.exit('-x and -p or -c are mutually exclusive')
-            options.mode = archmod.HTTPSERVER
-            try:
-                options.port = int(arg)
-            except ValueError, msg:
-                sys.exit('Invalid port number: %s' % msg)
         elif opt in ('-c', '--convert'):
             if options.mode is not None:
-                sys.exit('-x and -p or -c are mutually exclusive')
+                sys.exit('-x and -c are mutually exclusive')
             options.mode = archmod.output_format(str(arg))
         elif opt in ('-x', '--extract'):
             if options.mode is not None:
-                sys.exit('-x and -p or -c are mutually exclusive')
+                sys.exit('-x and -c are mutually exclusive')
             options.mode = archmod.EXTRACT
         elif opt in ('-d', '--dump'):
             if options.mode is not None:
@@ -161,9 +145,7 @@ def main():
     source = os.path.isfile(options.chmfile) and \
         CHMFile(options.chmfile) or CHMDir(options.chmfile)
 
-    if options.mode == archmod.HTTPSERVER:
-        ChmServer(options.chmfile, '', options.port).serve_forever()
-    elif options.mode == archmod.DUMPHTML:
+    if options.mode == archmod.DUMPHTML:
         source.dump_html()
     elif options.mode == archmod.CHM2TXT:
         if os.path.exists(options.output):
