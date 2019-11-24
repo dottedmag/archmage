@@ -1,8 +1,8 @@
 arCHMage
 ========
 
-arCHMage is a reader and decompiler for files in the CHM format.  This is the
-format used by Microsoft HTML Help, and is also known as Compiled HTML.
+arCHMage converts CHM files to HTML, plain text and PDF. CHM is the format used
+by Microsoft HTML Help, also known as Compiled HTML.
 
 [![Latest Version](https://img.shields.io/pypi/v/archmage.svg)](https://pypi.python.org/pypi/archmage/)
 [![Downloads](https://img.shields.io/pypi/dm/archmage.svg)](https://pypi.python.org/pypi/archmage/)
@@ -30,27 +30,19 @@ Convert CHM file into another format
 
 This feature requires `htmldoc(1)`, and `lynx(1)` or `elinks(1)` installed.
 
-Serve CHM contents over HTTP
-----------------------------
-
-    archmage -p <port> <chmfile|dir with chm files>
-
-Serve CHM contents from Apache
-------------------------------
-
-TODO: document how to proxy Apache to running `archmage -p`.
-
-Then `http://youserver/sample.chm` will serve raw CHM file, and
-`http://yourserver/sample.chm/` will serve unpacked CHM file view.
-
 Installation
+============
+
+    pip install archmage
+
+Requirements
 ============
 
 arCHMage requires the following libraries:
 
-  * Python >= 2.3
+  * Python 2.7 or Python 3.5+
   * PyCHM
-  * Beautiful Soup
+  * BeautifulSoup4
 
 Optional dependencies:
 
@@ -58,7 +50,3 @@ Optional dependencies:
     (Debian/Ubuntu: `htmldoc`)
   * Lynx or ELinks - converting to plain text
     (Debian/Ubuntu: `lynx`)
-
-Use the regular `setup.py` stanza:
-
-    python setup.py install

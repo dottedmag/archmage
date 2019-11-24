@@ -1,10 +1,13 @@
-arCHMage X.Y
+arCHMage 0.4
 ============
 Changes:
 
-* mod_chm was removed. Use archmage -p and proxy requests from Apache.
-* archmage -p was removed. Extract CHM files to filesystem and use HTTP server
-  to serve them.
+* Works under Python 2.7, Python 3.5+
+
+Removals:
+
+* mod_chm and option -p were removed. Extract CHM files to the filesystem and
+  use HTTP server to serve them.
 
 arCHMage 0.3.1
 ==============
