@@ -29,6 +29,7 @@ setup(
     install_requires=[
         'pychm',
         'BeautifulSoup',
+        'sgmllib3k',
     ],
     entry_points={
         'console_scripts': ['archmage = archmod.cli:main'],
