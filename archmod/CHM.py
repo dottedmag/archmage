@@ -55,7 +55,7 @@ class CHMDir(Cached):
         exec(compile(open(archmod.config, "rb").read(), archmod.config, 'exec'), self.__dict__)
 
         # build regexp from the list of auxiliary files
-        self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
+        self.aux_re = b'|'.join([ re.escape(s) for s in self.auxes ])
 
         # Get and parse 'Table of Contents'
         try:
@@ -102,7 +102,7 @@ class CHMDir(Cached):
         # Get topics file
         if name == 'topics':
             for e in self.entries:
-                if e.lower().endswith('.hhc'):
+                if e.lower().endswith(b'.hhc'):
                     return e
         if name == 'deftopic':
             # use first page as deftopic. Note: without heading slash
@@ -112,7 +112,7 @@ class CHMDir(Cached):
         # Get index file
         if name == 'index':
             for e in self.entries:
-                if e.lower().endswith('.hhk'):
+                if e.lower().endswith(b'.hhk'):
                     return e
         # Get frontpage name
         if name == 'frontpage':
@@ -356,7 +356,7 @@ class CHMEntry(object):
         """Get correct CHM entry content"""
         data = self.read()
         # If entry is a html page?
-        if re.search('(?i)\.html?$', self.name) and data is not None:
+        if re.search(b'(?i)\.html?$', self.name) and data is not None:
             # lower-casing links if needed
             if self.parent.filename_case:
                 data = self.lower_links(data)
@@ -381,7 +381,7 @@ class CHMEntry(object):
         # read entry content
         data = self.read()
         # If entry is a html page?
-        if re.search('(?i)\.html?$', self.name) and data is not None:
+        if re.search(b'(?i)\.html?$', self.name) and data is not None:
             # lower-casing links if needed
             if self.parent.filename_case:
                 data = self.lower_links(data)
