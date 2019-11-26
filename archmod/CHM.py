@@ -103,7 +103,7 @@ class CHMDir(Cached):
         if name == 'topics':
             for e in self.entries:
                 if e.lower().endswith('.hhc'):
-                    return e.decode('utf-8')
+                    return e
         if name == 'deftopic':
             # use first page as deftopic. Note: without heading slash
             if self.html_files[0].startswith('/'):
