@@ -35,7 +35,7 @@ from archmod.Cached import Cached
 
 # import PyCHM bindings
 try:
-    from .chm import chmlib
+    from chm import chmlib
 except ImportError as msg:
     sys.exit('ImportError: %s\nPlease check README file for system requirements.' % msg)
 
