@@ -31,7 +31,7 @@ class Cached(object):
     """
 
     def __new__(classtype, *args, **kwargs):
-        __instance = object.__new__(classtype, *args, **kwargs)
+        __instance = object.__new__(classtype)
         __instance.cache = {}
         return __instance
 
