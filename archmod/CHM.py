@@ -55,7 +55,7 @@ class CHMDir(Cached):
         exec(compile(open(archmod.config, "rb").read(), archmod.config, 'exec'), self.__dict__)
 
         # build regexp from the list of auxiliary files
-        self.aux_re = b'|'.join([ re.escape(s) for s in self.auxes ])
+        self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
 
         # Get and parse 'Table of Contents'
         try:
@@ -102,8 +102,8 @@ class CHMDir(Cached):
         # Get topics file
         if name == 'topics':
             for e in self.entries:
-                if e.lower().endswith(b'.hhc'):
-                    return e
+                if e.lower().endswith('.hhc'):
+                    return e.decode('utf-8')
         if name == 'deftopic':
             # use first page as deftopic. Note: without heading slash
             if self.html_files[0].startswith('/'):
@@ -186,7 +186,7 @@ class CHMDir(Cached):
 
     def extract_entry(self, entry, output_file, destdir=".", correct=False):
         # process output entry, remove first '/' in entry name
-        fname = output_file.lower().replace(b'/', b'', 1)
+        fname = output_file.lower().replace('/', '', 1)
         # get directory name for file fname if any
         dname = os.path.dirname(os.path.join(destdir, fname))
         # if dname is a directory and it's not exist, than create it
@@ -194,14 +194,11 @@ class CHMDir(Cached):
             os.makedirs(dname)
         # otherwise write a file from CHM entry
         if not os.path.isdir(os.path.join(destdir, fname)):
-            # filename encoding conversion
-            if self.fs_encoding:
-                fname = fname.decode('utf-8').encode(self.fs_encoding)
             # write CHM entry content into the file, corrected or as is
             if correct:
-                open(os.path.join(destdir, fname), 'w').writelines(CHMEntry(self, entry).correct())
+                open(os.path.join(destdir, fname), 'wb').write(CHMEntry(self, entry).correct())
             else:
-                open(os.path.join(destdir, fname), 'w').writelines(CHMEntry(self, entry).get())
+                open(os.path.join(destdir, fname), 'wb').write(CHMEntry(self, entry).get())
 
     def extract_entries(self, entries=[], destdir=".", correct=False):
         """Extract raw CHM entries into the files"""
@@ -302,7 +299,7 @@ class CHMFile(CHMDir):
     def _get_names(self, chmfile):
         """Get object's names inside CHM file"""
         def get_name(chmfile, ui, content):
-            content.append(ui.path)
+            content.append(ui.path.decode('utf-8'))
             return chmlib.CHM_ENUMERATOR_CONTINUE
 
         chmdir = []
@@ -326,7 +323,7 @@ class CHMEntry(object):
         """Read CHM entry content"""
         # Check where parent instance is CHMFile or CHMDir
         if isinstance(self.parent, CHMFile):
-            result, ui = chmlib.chm_resolve_object(self.parent._handler, self.name)
+            result, ui = chmlib.chm_resolve_object(self.parent._handler, self.name.encode('utf-8'))
             if (result != chmlib.CHM_RESOLVE_SUCCESS):
                 return None
 
@@ -339,7 +336,7 @@ class CHMEntry(object):
 
     def lower_links(self, text):
         """Links to lower case"""
-        return re.sub('(?i)(href|src)\s*=\s*([^\s|>]+)', lambda m:m.group(0).lower(), text)
+        return re.sub(b'(?i)(href|src)\s*=\s*([^\s|>]+)', lambda m:m.group(0).lower(), text)
 
     def add_restoreframing_js(self, name, text):
         name = re.sub('/+', '/', name)
@@ -350,13 +347,13 @@ class CHMEntry(object):
         document.write("<center><a href='%s%s?page=%s'>show framing</a></center>")
         </script>""" % ( '../' * depth, self.frontpage, name )
 
-        return re.sub('(?i)<\s*body\s*>', js, text)
+        return re.sub(b'(?i)<\s*body\s*>', js, text)
 
     def correct(self):
         """Get correct CHM entry content"""
         data = self.read()
         # If entry is a html page?
-        if re.search(b'(?i)\.html?$', self.name) and data is not None:
+        if re.search('(?i)\.html?$', self.name) and data is not None:
             # lower-casing links if needed
             if self.parent.filename_case:
                 data = self.lower_links(data)
@@ -381,7 +378,7 @@ class CHMEntry(object):
         # read entry content
         data = self.read()
         # If entry is a html page?
-        if re.search(b'(?i)\.html?$', self.name) and data is not None:
+        if re.search('(?i)\.html?$', self.name) and data is not None:
             # lower-casing links if needed
             if self.parent.filename_case:
                 data = self.lower_links(data)
