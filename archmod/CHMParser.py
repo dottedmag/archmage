@@ -24,7 +24,7 @@ import mimetypes
 import sgmllib, urllib.request, urllib.error, urllib.parse
 
 from bs4 import BeautifulSoup
-from html.parser import HTMLParser, HTMLParseError
+from html.parser import HTMLParser
 from urllib.parse import urlparse
 
 from archmod import COMMASPACE, LF, CR
@@ -71,7 +71,7 @@ class TagStack(list):
         try:
             pos = self.index(tag)
         except ValueError:
-            raise HTMLParseError('Tag not on stack')
+            raise Error('Tag not on stack')
         self[:] = self[pos + 1:]
         self.reverse()
 
