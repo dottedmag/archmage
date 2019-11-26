@@ -223,7 +223,7 @@ class CHMDir(Cached):
             # process templates
             self.process_templates(destdir=destdir)
         except OSError as error:
-            if error[0] == errno.EEXIST:
+            if error.errno == errno.EEXIST:
                 sys.exit('%s is already exists' % destdir)
 
     def dump_html(self, output=sys.stdout):
