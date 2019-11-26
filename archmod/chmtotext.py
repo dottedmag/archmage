@@ -31,4 +31,4 @@ def chmtotext(input, cmd, output=sys.stdout):
     """CHM to Text converter"""
     proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)
     proc.stdin.write(input)
-    print >> output, proc.communicate()[0]
+    print(proc.communicate()[0], file=output)

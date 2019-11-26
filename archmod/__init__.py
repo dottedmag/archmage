@@ -54,7 +54,7 @@ def message(code=OK, msg=''):
     if code == ERROR:
         outfp = sys.stderr
     if msg:
-        print >> outfp, msg
+        print(msg, file=outfp)
 
 def file2dir(filename):
     """Convert file filename.chm to filename_html directory"""

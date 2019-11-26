@@ -43,6 +43,6 @@ class Cached(object):
         try:
             return object.__getattribute__(self, name)
         except:
-            if not self.cache.has_key(name):
+            if name not in self.cache:
                 self.cache[name] = self._getitem(name)
             return self.cache[name]

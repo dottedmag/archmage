@@ -70,7 +70,7 @@ def parseargs():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
                                 ['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(archmod.ERROR, msg)
 
     class Options:

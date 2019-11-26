@@ -2,7 +2,7 @@ arCHMage 0.4
 ============
 Changes:
 
-* Works under Python 2.7, Python 3.5+
+* Requires Python 3.5+.
 
 Removals:
 

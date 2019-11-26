@@ -21,11 +21,11 @@
 
 import re
 import mimetypes
-import sgmllib, urllib2
+import sgmllib, urllib.request, urllib.error, urllib.parse
 
 from BeautifulSoup import BeautifulSoup
-from HTMLParser import HTMLParser, HTMLParseError
-from urlparse import urlparse
+from html.parser import HTMLParser, HTMLParseError
+from urllib.parse import urlparse
 
 from archmod import COMMASPACE, LF, CR
 
@@ -71,7 +71,7 @@ class TagStack(list):
         try:
             pos = self.index(tag)
         except ValueError:
-            raise HTMLParseError, 'Tag not on stack'
+            raise HTMLParseError('Tag not on stack')
         self[:] = self[pos + 1:]
         self.reverse()
 
@@ -163,7 +163,7 @@ class PageLister(sgmllib.SGMLParser):
                 urlparam_flag = True
             if urlparam_flag and key == 'value':
                 # Sometime url has incorrect slashes
-                value = urllib2.unquote(urlparse(value.replace('\\', '/')).geturl())
+                value = urllib.parse.unquote(urlparse(value.replace('\\', '/')).geturl())
                 value = '/' + re.sub("#.*$", '', value)
                 # Avoid duplicates
                 if not self.pages.count(value):
@@ -190,7 +190,7 @@ class ImageCatcher(sgmllib.SGMLParser):
         for key, value in attrs:
             if key.lower() == 'href':
                 url = urlparse(value)
-                value = urllib2.unquote(url.geturl())
+                value = urllib.parse.unquote(url.geturl())
                 # Remove unwanted crap
                 value = '/' + re.sub("#.*$", '', value)
                 # Check file's mimetype

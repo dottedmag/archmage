@@ -35,8 +35,8 @@ from archmod.Cached import Cached
 
 # import PyCHM bindings
 try:
-    from chm import chmlib
-except ImportError, msg:
+    from .chm import chmlib
+except ImportError as msg:
     sys.exit('ImportError: %s\nPlease check README file for system requirements.' % msg)
 
 # External file converters
@@ -52,7 +52,7 @@ class CHMDir(Cached):
         # Name of source directory with CHM content
         self.sourcename = name
         # Import variables from config file into namespace
-        execfile(archmod.config, self.__dict__)
+        exec(compile(open(archmod.config, "rb").read(), archmod.config, 'exec'), self.__dict__)
 
         # build regexp from the list of auxiliary files
         self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
@@ -96,7 +96,7 @@ class CHMDir(Cached):
             image_files = {}
             for image_url in self.image_urls:
                 for entry in self.entries:
-                    if re.search(image_url, entry.lower()) and not image_files.has_key(entry.lower()):
+                    if re.search(image_url, entry.lower()) and entry.lower() not in image_files:
                         image_files.update({entry : image_url})
             return image_files
         # Get topics file
@@ -222,7 +222,7 @@ class CHMDir(Cached):
             self.extract_entries(entries=self.entries, destdir=destdir)
             # process templates
             self.process_templates(destdir=destdir)
-        except OSError, error:
+        except OSError as error:
             if error[0] == errno.EEXIST:
                 sys.exit('%s is already exists' % destdir)
 
@@ -232,7 +232,7 @@ class CHMDir(Cached):
             # if entry is auxiliary file, than skip it
             if re.match(self.aux_re, e):
                 continue
-            print >> output, CHMEntry(self, e).get()
+            print(CHMEntry(self, e).get(), file=output)
 
     def chm2text(self, output=sys.stdout):
         """Convert CHM into Single Text file"""
@@ -261,7 +261,7 @@ class CHMDir(Cached):
                 # Extract image files
                 os.mkdir(dirname)
                 # Extract all images
-                for key, value in self.image_files.items():
+                for key, value in list(self.image_files.items()):
                     self.extract_entry(entry=key, output_file=value, destdir=dirname)
                 # Fix output file name
                 output = os.path.join(dirname, output)
@@ -269,7 +269,7 @@ class CHMDir(Cached):
             options = self.chmtopdf
             if self.image_files:
                 # Extract all images
-                for key, value in self.image_files.items():
+                for key, value in list(self.image_files.items()):
                     self.extract_entry(entry=key, output_file=key.lower(), destdir=tempdir)
         htmldoc(files, self.htmldoc_exec, options, self.toclevels, output)
         # Remove temporary files
@@ -330,7 +330,7 @@ class CHMEntry(object):
             if (result != chmlib.CHM_RESOLVE_SUCCESS):
                 return None
 
-            size, content = chmlib.chm_retrieve_object(self.parent._handler, ui, 0l, ui.length)
+            size, content = chmlib.chm_retrieve_object(self.parent._handler, ui, 0, ui.length)
             if (size == 0):
                 return None
             return content
