@@ -23,7 +23,7 @@ import re
 import mimetypes
 import sgmllib, urllib.request, urllib.error, urllib.parse
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from html.parser import HTMLParser, HTMLParseError
 from urllib.parse import urlparse
 

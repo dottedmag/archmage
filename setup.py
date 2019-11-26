@@ -27,7 +27,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'pychm',
-        'BeautifulSoup',
+        'beautifulsoup4',
         'sgmllib3k',
     ],
     entry_points={
