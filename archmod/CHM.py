@@ -186,7 +186,7 @@ class CHMDir(Cached):
 
     def extract_entry(self, entry, output_file, destdir=".", correct=False):
         # process output entry, remove first '/' in entry name
-        fname = string.lower(output_file).replace('/', '', 1)
+        fname = output_file.lower().replace(b'/', b'', 1)
         # get directory name for file fname if any
         dname = os.path.dirname(os.path.join(destdir, fname))
         # if dname is a directory and it's not exist, than create it
