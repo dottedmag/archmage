@@ -343,7 +343,7 @@ class CHMEntry(object):
         depth = name.count('/')
 
         js = """<body><script language="javascript">
-        if ((window.name != "content") && (navigator.userAgent.indexOf("Opera") <= -1) )
+        if (window.name != "content")
         document.write("<center><a href='%s%s?page=%s'>show framing</a></center>")
         </script>""" % ( '../' * depth, self.frontpage, name )
 
