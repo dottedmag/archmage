@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-import version
 
 long_desc='''arCHMage is a reader and decompressor for CHM format'''
 
@@ -16,7 +15,7 @@ classifiers=[
 
 setup(
     name='archmage',
-    version=version.getVersion(),
+    version='0.4.0-pre',
     description='CHM decompressor',
     maintainer='Mikhail Gusarov',
     maintainer_email='dottedmag@dottedmag.net',
