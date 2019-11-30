@@ -342,10 +342,10 @@ class CHMEntry(object):
         name = re.sub('/+', '/', name)
         depth = name.count('/')
 
-        js = """<body><script language="javascript">
+        js = b"""<body><script language="javascript">
         if (window.name != "content")
         document.write("<center><a href='%s%s?page=%s'>show framing</a></center>")
-        </script>""" % ( '../' * depth, self.frontpage, name )
+        </script>""" % ( b'../' * depth, self.frontpage.encode('utf8'), name.encode('utf8') )
 
         return re.sub(b'(?i)<\s*body\s*>', js, text)
 
