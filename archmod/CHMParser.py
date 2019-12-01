@@ -156,6 +156,10 @@ class PageLister(sgmllib.SGMLParser):
         sgmllib.SGMLParser.reset(self)
         self.pages = []
 
+    def feed(self, data):
+        soup = BeautifulSoup(data, 'html.parser')
+        sgmllib.SGMLParser.feed(self, soup.prettify())
+
     def start_param(self, attrs):
         urlparam_flag = False
         for key, value in attrs:

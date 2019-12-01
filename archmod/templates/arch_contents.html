@@ -1,13 +1,13 @@
 <html>
  <head>
-  <title><%title%></title>
+  <title>$title</title>
   <LINK rel="Stylesheet" type="text/css" href="arch_css.css">
 </head>
 
 <body onload="setInterval('getLoc()', 500);">    
 <script>
 var lastDoc;
-var contents = <%contents%>;
+var contents = $contents;
 
 var w=window,d=document
 var icons={'0'  : 'icons/0.gif','1'  : 'icons/90.gif',

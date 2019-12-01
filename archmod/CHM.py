@@ -217,24 +217,20 @@ class CHMFile:
         else:
             archmod.message(archmod.ERROR, 'NameError: There is no %s' % name)
 
-    def sub_mytag(self, re):
-        """Replacing tagname with attribute"""
-        try:
-            res = eval('self.' + re.group(1))
-        except:
-            try:
-                res = eval(re.group(1))
-            except:
-                res = ''
-        return res
-
     def get_template(self, name):
-        """Get template file by it's name"""
+        """Get template file by its name"""
         if name == self.frontpage():
-            tpl = open(os.path.join(self.templates_dir, os.path.basename('index.html'))).read()
+            tpl = open(os.path.join(self.templates_dir, 'index.html')).read()
         else:
             tpl = open(os.path.join(self.templates_dir, os.path.basename(name))).read()
-        return re.sub('\<%(.+?)%\>', self.sub_mytag, tpl)
+        params = {
+            'title': self.title,
+            'contents': self.contents,
+            'deftopic': self.deftopic(),
+            'bcolor': self.bcolor,
+            'fcolor': self.fcolor,
+        }
+        return string.Template(tpl).substitute(params)
 
     def process_templates(self, destdir="."):
         """Process templates"""

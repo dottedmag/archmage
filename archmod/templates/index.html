@@ -2,13 +2,13 @@
  <head>
 <script>var pageid="";</script>
 
-  <title><%title%></title>
+  <title>$title</title>
   
   <script>
    var qs=location.search.substr(1);
    var A=qs.split("&")
    var B=null
-   var F="<%deftopic()%>";
+   var F="$deftopic";
    for(var i=0;i<A.length;i++){
       B=A[i].split("=")
       A[i]=[B[0],B[1]]
