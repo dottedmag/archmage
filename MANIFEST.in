@@ -1,4 +1,3 @@
 include archmod/arch.conf
 recursive-include archmod/templates *.html *.css *.gif
 include AUTHORS COPYING NEWS README.md archmage.1
-include RELEASE-VERSION version.py
