@@ -23,7 +23,7 @@ import re
 import mimetypes
 import sgmllib, urllib.request, urllib.error, urllib.parse
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
@@ -157,8 +157,7 @@ class PageLister(sgmllib.SGMLParser):
         self.pages = []
 
     def feed(self, data):
-        soup = BeautifulSoup(data, 'html.parser')
-        sgmllib.SGMLParser.feed(self, soup.prettify())
+        sgmllib.SGMLParser.feed(self, UnicodeDammit(data).unicode_markup)
 
     def start_param(self, attrs):
         urlparam_flag = False
