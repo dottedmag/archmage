@@ -87,14 +87,3 @@ def output_file(filename, mode):
         file_ext = 'output'
     output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
     return output_filename
-
-# Our own listdir method :)
-def listdir(dir):
-    def f(res, dir, files):
-        for e in files:
-            d = '/'.join(dir.split('/')[1:])
-            if d: d += '/'
-            res.append(d + e)
-    res = []
-    os.path.walk(dir, f, res)
-    return res

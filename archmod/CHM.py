@@ -31,7 +31,6 @@ import tempfile
 import archmod
 
 from archmod.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter#, HeadersCounter
-from archmod.Cached import Cached
 
 # import PyCHM bindings
 try:
@@ -45,12 +44,14 @@ from archmod.htmldoc import htmldoc
 
 PARENT_RE = re.compile(r'(^|/|\\)\.\.(/|\\|$)')
 
-class CHMDir(Cached):
+class CHMFile:
     """Class that represent CHM content from directory"""
 
     def __init__(self, name):
+        self.cache = {}
         # Name of source directory with CHM content
         self.sourcename = name
+        self._chm = chmlib.chm_open(name)
         # Import variables from config file into namespace
         exec(compile(open(archmod.config, "rb").read(), archmod.config, 'exec'), self.__dict__)
 
@@ -59,100 +60,160 @@ class CHMDir(Cached):
 
         # Get and parse 'Table of Contents'
         try:
-            self.topicstree = self.get_entry(self.topics)
+            self.topicstree = self.get_entry(self.topics())
         except AttributeError:
             self.topicstree = None
         self.contents = SitemapFile(self.topicstree).parse()
 
-    def _getitem(self, name):
-        # Get all entries
-        if name == 'entries':
-            entries = []
-            for fname in archmod.listdir(self.sourcename):
-                name = '/' + fname
-                if os.path.isdir(self.sourcename + name):
-                    name += '/'
-                entries.append(name)
-            return entries
-        # retrieves the list of HTML files contained into the CHM file, **in order** (that's the important bit).
-        # (actually performed by the PageLister class)
-        if name == 'html_files':
-            lister = PageLister()
-            lister.feed(self.topicstree)
-            return lister.pages
-        # retrieves the list of images urls contained into the CHM file.
-        # (actually performed by the ImageCatcher class)
-        if name == 'image_urls':
-            image_urls = []
-            image_catcher = ImageCatcher()
-            for file in self.html_files:
-                image_catcher.feed(CHMEntry(self, file).correct())
-                for image_url in image_catcher.imgurls:
-                    if not image_urls.count(image_url):
-                        image_urls.append(image_url)
-            return image_urls
-        # retrieves a dictionary of actual file entries and corresponding urls into the CHM file
-        if name == 'image_files':
-            image_files = {}
-            for image_url in self.image_urls:
-                for entry in self.entries:
-                    if re.search(image_url, entry.lower()) and entry.lower() not in image_files:
-                        image_files.update({entry : image_url})
-            return image_files
-        # Get topics file
-        if name == 'topics':
-            for e in self.entries:
-                if e.lower().endswith('.hhc'):
-                    return e
-        if name == 'deftopic':
-            # use first page as deftopic. Note: without heading slash
-            if self.html_files[0].startswith('/'):
-                return self.html_files[0].replace('/', '', 1).lower()
-            return self.html_files[0].lower()
-        # Get index file
-        if name == 'index':
-            for e in self.entries:
-                if e.lower().endswith(b'.hhk'):
-                    return e
-        # Get frontpage name
-        if name == 'frontpage':
-            frontpage = os.path.join('/', 'index.html')
-            index = 2 # index2.html and etc.
-            for filename in self.entries:
-                if frontpage == filename:
-                    frontpage = os.path.join('/', ('index%s.html' % index))
-                    index += 1
-            return frontpage
-        # Get all templates files
-        if name == 'templates':
-            templates = []
-            for file in os.listdir(self.templates_dir):
-                if os.path.isfile(os.path.join(self.templates_dir, file)):
-                    if os.path.join('/', file) not in self.entries:
-                        templates.append(os.path.join('/', file))
-            return templates
-        # Get ToC levels
-        if name == 'toclevels':
-            counter = TOCCounter()
-            counter.feed(self.topicstree)
-            if counter.count > self.maxtoclvl:
-                return self.maxtoclvl
-            else:
-                return counter.count
-        raise AttributeError(name)
+    def close(self):
+        chmlib.chm_close(self._chm)
+
+    def entries(self):
+        if 'entries' not in self.cache:
+            self.cache['entries'] = self._entries()
+        return self.cache['entries']
+
+    def _entries(self):
+        out = []
+        # get CHM file content and process it
+        for name in self._get_names(self._chm):
+            if (name == '/'):
+                continue
+            out.append(name)
+        return out
+
+    def _get_names(self, chmfile):
+        """Get object's names inside CHM file"""
+        def get_name(chmfile, ui, content):
+            content.append(ui.path.decode('utf-8'))
+            return chmlib.CHM_ENUMERATOR_CONTINUE
+
+        chmdir = []
+        if (chmlib.chm_enumerate(chmfile, chmlib.CHM_ENUMERATE_ALL, get_name, chmdir)) == 0:
+            sys.exit('UnknownError: CHMLIB or PyCHM bug?')
+        return chmdir
+
+    # retrieves the list of HTML files contained into the CHM file, **in order**
+    # (that's the important bit).
+    # (actually performed by the PageLister class)
+    def html_files(self):
+        if 'html_files' not in self.cache:
+            self.cache['html_files'] = self._html_files()
+        return self.cache['html_files']
+
+    def _html_files(self):
+        lister = PageLister()
+        lister.feed(self.topicstree)
+        return lister.pages
+
+    # retrieves the list of images urls contained into the CHM file.
+    # (actually performed by the ImageCatcher class)
+    def image_urls(self):
+        if 'image_urls' not in self.cache:
+            self.cache['image_urls'] = self._image_urls()
+        return self.cache['image_urls']
+
+    def _image_urls(self):
+        out = []
+        image_catcher = ImageCatcher()
+        for file in self.html_files():
+            image_catcher.feed(CHMEntry(self, file).correct())
+            for image_url in image_catcher.imgurls:
+                if not out.count(image_url):
+                    out.append(image_url)
+        return out
+
+    # retrieves a dictionary of actual file entries and corresponding urls into the CHM file
+    def image_files(self):
+        if 'image_files' not in self.cache:
+            self.cache['image_files'] = self._image_files()
+        return self.cache['image_files']
+
+    def _image_files(self):
+        out = {}
+        for image_url in self.image_urls():
+            for entry in self.entries():
+                if re.search(image_url, entry.lower()) and entry.lower() not in out:
+                    out.update({entry : image_url})
+        return out
+
+    # Get topics file
+    def topics(self):
+        if 'topics' not in self.cache:
+            self.cache['topics'] = self._topics()
+        return self.cache['topics']
+
+    def _topics(self):
+        for e in self.entries():
+            if e.lower().endswith('.hhc'):
+                return e
+
+    # use first page as deftopic. Note: without heading slash
+    def deftopic(self):
+        if 'deftopic' not in self.cache:
+            self.cache['deftopic'] = self._deftopic()
+        return self.cache['deftopic']
+
+    def _deftopic(self):
+        if self.html_files()[0].startswith('/'):
+            return self.html_files()[0].replace('/', '', 1).lower()
+        return self.html_files()[0].lower()
+
+    # Get frontpage name
+    def frontpage(self):
+        if 'frontpage' not in self.cache:
+            self.cache['frontpage'] = self._frontpage()
+        return self.cache['frontpage']
+
+    def _frontpage(self):
+        frontpage = os.path.join('/', 'index.html')
+        index = 2 # index2.html and etc.
+        for filename in self.entries():
+            if frontpage == filename:
+                frontpage = os.path.join('/', ('index%s.html' % index))
+                index += 1
+        return frontpage
+
+    # Get all templates files
+    def templates(self):
+        if 'templates' not in self.cache:
+            self.cache['templates'] = self._templates()
+        return self.cache['templates']
+
+    def _templates(self):
+        out = []
+        for file in os.listdir(self.templates_dir):
+            if os.path.isfile(os.path.join(self.templates_dir, file)):
+                if os.path.join('/', file) not in self.entries():
+                    out.append(os.path.join('/', file))
+        return out
+
+    # Get ToC levels
+    def toclevels(self):
+        if 'toclevels' not in self.cache:
+            self.cache['toclevels'] = self._toclevels()
+        return self.cache['toclevels']
+
+    def _toclevels(self):
+        counter = TOCCounter()
+        counter.feed(self.topicstree)
+        if counter.count > self.maxtoclvl:
+            return self.maxtoclvl
+        else:
+            return counter.count
 
     def get_entry(self, name):
         """Get CHM entry by name"""
         # show index page or any other substitute
         if name == '/':
-            name = self.frontpage
-        if name in self.templates or name == self.frontpage:
+            name = self.frontpage()
+        if name in self.templates() or name == self.frontpage():
             return self.get_template(name)
         if name.lower() in [ os.path.join('/icons', icon.lower()) for icon in os.listdir(self.icons_dir) ]:
             return open(os.path.join(self.icons_dir, os.path.basename(name))).read()
-        for e in self.entries:
+        for e in self.entries():
             if e.lower() == name.lower():
-                return CHMEntry(self, e, frontpage=self.frontpage).get()
+                return CHMEntry(self, e, frontpage=self.frontpage()).get()
         else:
             archmod.message(archmod.ERROR, 'NameError: There is no %s' % name)
 
@@ -169,7 +230,7 @@ class CHMDir(Cached):
 
     def get_template(self, name):
         """Get template file by it's name"""
-        if name == self.frontpage:
+        if name == self.frontpage():
             tpl = open(os.path.join(self.templates_dir, os.path.basename('index.html'))).read()
         else:
             tpl = open(os.path.join(self.templates_dir, os.path.basename(name))).read()
@@ -177,10 +238,10 @@ class CHMDir(Cached):
 
     def process_templates(self, destdir="."):
         """Process templates"""
-        for template in self.templates:
+        for template in self.templates():
             open(os.path.join(destdir, os.path.basename(template)), 'w').write(self.get_template(template))
-        if self.frontpage not in self.templates:
-            open(os.path.join(destdir, os.path.basename(self.frontpage)), 'w').write(self.get_template('index.html'))
+        if self.frontpage() not in self.templates():
+            open(os.path.join(destdir, os.path.basename(self.frontpage())), 'w').write(self.get_template('index.html'))
         if not os.path.exists(os.path.join(destdir, 'icons/')):
             shutil.copytree(os.path.join(self.icons_dir), os.path.join(destdir, 'icons/'))
 
@@ -216,7 +277,7 @@ class CHMDir(Cached):
             # Create destination directory
             os.mkdir(destdir)
             # make raw content extraction
-            self.extract_entries(entries=self.entries, destdir=destdir)
+            self.extract_entries(entries=self.entries(), destdir=destdir)
             # process templates
             self.process_templates(destdir=destdir)
         except OSError as error:
@@ -225,7 +286,7 @@ class CHMDir(Cached):
 
     def dump_html(self, output=sys.stdout):
         """Dump HTML data from CHM file into standard output"""
-        for e in self.html_files:
+        for e in self.html_files():
             # if entry is auxiliary file, than skip it
             if re.match(self.aux_re, e):
                 continue
@@ -233,7 +294,7 @@ class CHMDir(Cached):
 
     def chm2text(self, output=sys.stdout):
         """Convert CHM into Single Text file"""
-        for e in self.html_files:
+        for e in self.html_files():
             # if entry is auxiliary file, than skip it
             if re.match(self.aux_re, e):
                 continue
@@ -245,68 +306,32 @@ class CHMDir(Cached):
         # Extract CHM content into temporary directory
         output = output.replace(' ', '_')
         tempdir = tempfile.mkdtemp(prefix=output.rsplit('.', 1)[0])
-        self.extract_entries(entries=self.html_files, destdir=tempdir, correct=True)
+        self.extract_entries(entries=self.html_files(), destdir=tempdir, correct=True)
         # List of temporary files
-        files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files ]
+        files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files() ]
         if format == archmod.CHM2HTML:
             options = self.chmtohtml
             # change output from single html file to a directory with html file and images
-            if self.image_files:
+            if self.image_files():
                 dirname = archmod.file2dir(output)
                 if os.path.exists(dirname):
                     sys.exit('%s is already exists' % dirname)
                 # Extract image files
                 os.mkdir(dirname)
                 # Extract all images
-                for key, value in list(self.image_files.items()):
+                for key, value in list(self.image_files().items()):
                     self.extract_entry(entry=key, output_file=value, destdir=dirname)
                 # Fix output file name
                 output = os.path.join(dirname, output)
         elif format == archmod.CHM2PDF:
             options = self.chmtopdf
-            if self.image_files:
+            if self.image_files():
                 # Extract all images
-                for key, value in list(self.image_files.items()):
+                for key, value in list(self.image_files().items()):
                     self.extract_entry(entry=key, output_file=key.lower(), destdir=tempdir)
         htmldoc(files, self.htmldoc_exec, options, self.toclevels, output)
         # Remove temporary files
         shutil.rmtree(path=tempdir)
-
-
-class CHMFile(CHMDir):
-    """CHM file class derived from CHMDir"""
-
-    def _getitem(self, name):
-        # Overriding CHMDir.entries attribute
-        if name == 'entries':
-            entries = []
-            # get CHM file content and process it
-            for name in self._get_names(self._handler):
-                if (name == '/'):
-                    continue
-                entries.append(name)
-            return entries
-        if name == '_handler':
-            return chmlib.chm_open(self.sourcename)
-        return super(CHMFile, self)._getitem(name)
-
-    def __delattr__(self, name):
-        # Closes CHM file handler on class destroying
-        if name == '_handler':
-            chmlib.chm_close(self._handler)
-        return super(CHMFile, self).__delattr__(name)
-
-    def _get_names(self, chmfile):
-        """Get object's names inside CHM file"""
-        def get_name(chmfile, ui, content):
-            content.append(ui.path.decode('utf-8'))
-            return chmlib.CHM_ENUMERATOR_CONTINUE
-
-        chmdir = []
-        if (chmlib.chm_enumerate(chmfile, chmlib.CHM_ENUMERATE_ALL, get_name, chmdir)) == 0:
-            sys.exit('UnknownError: CHMLIB or PyCHM bug?')
-        return chmdir
-
 
 class CHMEntry(object):
     """Class for CHM file entry"""
@@ -321,18 +346,14 @@ class CHMEntry(object):
 
     def read(self):
         """Read CHM entry content"""
-        # Check where parent instance is CHMFile or CHMDir
-        if isinstance(self.parent, CHMFile):
-            result, ui = chmlib.chm_resolve_object(self.parent._handler, self.name.encode('utf-8'))
-            if (result != chmlib.CHM_RESOLVE_SUCCESS):
-                return None
+        result, ui = chmlib.chm_resolve_object(self.parent._chm, self.name.encode('utf-8'))
+        if (result != chmlib.CHM_RESOLVE_SUCCESS):
+            return None
 
-            size, content = chmlib.chm_retrieve_object(self.parent._handler, ui, 0, ui.length)
-            if (size == 0):
-                return None
-            return content
-        else:
-            return open(self.parent.sourcename + self.name).read()
+        size, content = chmlib.chm_retrieve_object(self.parent._chm, ui, 0, ui.length)
+        if (size == 0):
+            return None
+        return content
 
     def lower_links(self, text):
         """Links to lower case"""

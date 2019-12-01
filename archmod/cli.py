@@ -54,7 +54,7 @@ import os, sys
 import getopt
 
 import archmod
-from archmod.CHM import CHMFile, CHMDir
+from archmod.CHM import CHMFile
 
 
 program = sys.argv[0]
@@ -139,11 +139,10 @@ def main():
     if not os.path.exists(options.chmfile):
         sys.exit('No such file: %s' % options.chmfile)
 
-    # Check where is argument a CHM file or directory with decompressed
-    # content. Depending on results make 'source' instance of CHMFile or
-    # CHMDir class.
-    source = os.path.isfile(options.chmfile) and \
-        CHMFile(options.chmfile) or CHMDir(options.chmfile)
+    if os.path.isdir(options.chmfile):
+        sys.exit('A regular files is expected, got directory: %s' % options.chmfile)
+
+    source = CHMFile(options.chmfile)
 
     if options.mode == archmod.DUMPHTML:
         source.dump_html()
@@ -155,3 +154,5 @@ def main():
         source.htmldoc(options.output, options.mode)
     elif options.mode == archmod.EXTRACT:
         source.extract(options.output)
+
+    source.close()
