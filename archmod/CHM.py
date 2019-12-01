@@ -74,24 +74,16 @@ class CHMFile:
         return self.cache['entries']
 
     def _entries(self):
-        out = []
-        # get CHM file content and process it
-        for name in self._get_names(self._chm):
-            if (name == '/'):
-                continue
-            out.append(name)
-        return out
-
-    def _get_names(self, chmfile):
-        """Get object's names inside CHM file"""
-        def get_name(chmfile, ui, content):
-            content.append(ui.path.decode('utf-8'))
+        def get_name(chmfile, ui, out):
+            path = ui.path.decode('utf-8')
+            if path != '/':
+                out.append(path)
             return chmlib.CHM_ENUMERATOR_CONTINUE
 
-        chmdir = []
-        if (chmlib.chm_enumerate(chmfile, chmlib.CHM_ENUMERATE_ALL, get_name, chmdir)) == 0:
+        out = []
+        if chmlib.chm_enumerate(self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out) == 0:
             sys.exit('UnknownError: CHMLIB or PyCHM bug?')
-        return chmdir
+        return out
 
     # retrieves the list of HTML files contained into the CHM file, **in order**
     # (that's the important bit).
