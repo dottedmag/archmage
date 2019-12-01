@@ -2,12 +2,16 @@ arCHMage 0.4
 ============
 Changes:
 
-* Requires Python 3.5+.
+* Works with Python 3.5+ (#10).
+
+Bugfixes:
+
+* Fix HTML conversion under Windows (#6).
 
 Removals:
 
 * mod_chm and option -p were removed. Extract CHM files to the filesystem and
-  use HTTP server to serve them.
+  use a real HTTP server to serve them.
 
 arCHMage 0.3.1
 ==============
