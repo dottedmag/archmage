@@ -39,7 +39,7 @@ class SitemapFile(object):
     def __init__(self, lines):
         # XXX: Cooking tasty beautiful soup ;-)
         if lines:
-            soup = BeautifulSoup(lines)
+            soup = BeautifulSoup(lines, 'html.parser')
             lines = soup.prettify()
             # XXX: Removing empty tags
             lines = re.sub(re.compile(r'<ul>\s*</ul>', re.I | re.M), '', lines)
