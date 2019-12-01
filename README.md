@@ -38,9 +38,9 @@ Installation
 Requirements
 ============
 
-arCHMage requires the following libraries:
+arCHMage has the following dependencies:
 
-  * Python 2.7 or Python 3.5+
+  * Python 3.5+
   * PyCHM
   * BeautifulSoup4
 
