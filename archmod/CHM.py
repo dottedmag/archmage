@@ -60,7 +60,7 @@ class CHMFile:
 
         # Get and parse 'Table of Contents'
         try:
-            self.topicstree = self.get_entry(self.topics())
+            self.topicstree = self.topics()
         except AttributeError:
             self.topicstree = None
         self.contents = SitemapFile(self.topicstree).parse()
@@ -146,7 +146,7 @@ class CHMFile:
     def _topics(self):
         for e in self.entries():
             if e.lower().endswith('.hhc'):
-                return e
+                return CHMEntry(self, e, frontpage=self.frontpage()).get()
 
     # use first page as deftopic. Note: without heading slash
     def deftopic(self):
@@ -201,21 +201,6 @@ class CHMFile:
             return self.maxtoclvl
         else:
             return counter.count
-
-    def get_entry(self, name):
-        """Get CHM entry by name"""
-        # show index page or any other substitute
-        if name == '/':
-            name = self.frontpage()
-        if name in self.templates() or name == self.frontpage():
-            return self.get_template(name)
-        if name.lower() in [ os.path.join('/icons', icon.lower()) for icon in os.listdir(self.icons_dir) ]:
-            return open(os.path.join(self.icons_dir, os.path.basename(name))).read()
-        for e in self.entries():
-            if e.lower() == name.lower():
-                return CHMEntry(self, e, frontpage=self.frontpage()).get()
-        else:
-            archmod.message(archmod.ERROR, 'NameError: There is no %s' % name)
 
     def get_template(self, name):
         """Get template file by its name"""
