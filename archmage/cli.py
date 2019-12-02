@@ -76,6 +76,29 @@ def usage(code=OK, msg=''):
     message(code, msg)
     sys.exit(code)
 
+def output_format(mode):
+    if mode == 'text':
+        return CHM2TXT
+    elif mode == 'html':
+        return CHM2HTML
+    elif mode == 'pdf':
+        return CHM2PDF
+    else:
+        sys.exit('Invalid output file format: %s' % mode)
+
+def output_file(filename, mode):
+    """Convert filename.chm to filename.output"""
+    if mode == CHM2TXT:
+        file_ext = 'txt'
+    elif mode == CHM2HTML:
+        file_ext = 'html'
+    elif mode == CHM2PDF:
+        file_ext = 'pdf'
+    else:
+        file_ext = 'output'
+    output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
+    return output_filename
+
 def parseargs():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
@@ -99,7 +122,7 @@ def parseargs():
         elif opt in ('-c', '--convert'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')
-            options.mode = archmage.output_format(str(arg))
+            options.mode = output_format(str(arg))
         elif opt in ('-x', '--extract'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')
@@ -132,7 +155,7 @@ def parseargs():
     # or converted into another file format
     elif options.mode in (archmage.CHM2TXT, archmage.CHM2HTML, archmage.CHM2PDF):
         if not args:
-            options.output = archmage.output_file(options.chmfile, options.mode)
+            options.output = output_file(options.chmfile, options.mode)
         else:
             # get output filename from command line
             options.output = args.pop(0)

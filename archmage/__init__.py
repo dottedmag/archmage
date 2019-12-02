@@ -44,29 +44,3 @@ def file2dir(filename):
     dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
     return dirname
 
-def output_format(mode):
-    if mode == 'text':
-        return CHM2TXT
-    elif mode == 'html':
-        return CHM2HTML
-    elif mode == 'pdf':
-        return CHM2PDF
-#    elif mode == 'ps':
-#        return CHM2PS
-    else:
-        sys.exit('Invalid output file format: %s' % mode)
-
-def output_file(filename, mode):
-    """Convert filename.chm to filename.output"""
-    if mode == CHM2TXT:
-        file_ext = 'txt'
-    elif mode == CHM2HTML:
-        file_ext = 'html'
-    elif mode == CHM2PDF:
-        file_ext = 'pdf'
-#    elif mode == CHM2PS:
-#        file_ext = 'ps'
-    else:
-        file_ext = 'output'
-    output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
-    return output_filename
