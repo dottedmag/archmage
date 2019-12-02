@@ -56,10 +56,13 @@ import getopt
 import archmage
 from archmage.CHM import CHMFile
 
+# Return codes
+OK = 0
+ERROR = 1
 
 program = sys.argv[0]
 
-def usage(code=archmage.OK, msg=''):
+def usage(code=OK, msg=''):
     """Show application usage and quit"""
     archmage.message(code, __doc__ % globals())
     archmage.message(code, msg)
@@ -71,7 +74,7 @@ def parseargs():
         opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
                                 ['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
     except getopt.error as msg:
-        usage(archmage.ERROR, msg)
+        usage(ERROR, msg)
 
     class Options:
         mode = None        # EXTRACT or other
@@ -84,8 +87,8 @@ def parseargs():
         if opt in ('-h', '--help'):
             usage()
         elif opt in ('-V', '--version'):
-            archmage.message(archmage.OK, archmage.__version__)
-            sys.exit(archmage.OK)
+            archmage.message(OK, archmage.__version__)
+            sys.exit(OK)
         elif opt in ('-c', '--convert'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')

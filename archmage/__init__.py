@@ -24,10 +24,6 @@ __version__ = '0.4.0-pre'
 
 import sys, os, pkg_resources
 
-# Return codes
-OK = 0
-ERROR = 1
-
 # Global variables
 EXTRACT = 1        # Extract CHM content
 DUMPHTML = 3    # Dump CHM file as plain text
