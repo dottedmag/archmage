@@ -24,14 +24,6 @@ __version__ = '0.4.0-pre'
 
 import sys, os, pkg_resources
 
-# Global variables
-EXTRACT = 1        # Extract CHM content
-DUMPHTML = 3    # Dump CHM file as plain text
-CHM2TXT = 4        # Convert CHM file into Single Text file
-CHM2HTML = 5    # Convert CHM file into Single HTML file
-CHM2PDF = 6        # Convert CHM file into PDF Document
-#CHM2PS = 7        # Convert CHM file into PDF Document
-
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
 if os.path.exists(user_config):
@@ -43,4 +35,3 @@ def file2dir(filename):
     """Convert file filename.chm to filename_html directory"""
     dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
     return dirname
-

@@ -54,7 +54,7 @@ import os, sys
 import getopt
 
 import archmage
-from archmage.CHM import CHMFile
+from archmage.CHM import CHMFile, Action
 
 # Return codes
 OK = 0
@@ -126,18 +126,18 @@ def parseargs():
         elif opt in ('-x', '--extract'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')
-            options.mode = archmage.EXTRACT
+            options.mode = Action.EXTRACT
         elif opt in ('-d', '--dump'):
             if options.mode is not None:
                 sys.exit('-d should be used without any other options')
-            options.mode = archmage.DUMPHTML
+            options.mode = Action.DUMPHTML
         else:
             assert False, (opt, arg)
 
     # Sanity checks
     if options.mode is None:
         # Set default option
-        options.mode = archmage.EXTRACT
+        options.mode = Action.EXTRACT
 
     if not args:
         sys.exit('No CHM file was specified!')
@@ -146,14 +146,14 @@ def parseargs():
         options.chmfile = args.pop(0)
 
     # if CHM content should be extracted
-    if options.mode == archmage.EXTRACT:
+    if options.mode == Action.EXTRACT:
         if not args:
             options.output = archmage.file2dir(options.chmfile)
         else:
             # get output directory from command line
             options.output = args.pop(0)
     # or converted into another file format
-    elif options.mode in (archmage.CHM2TXT, archmage.CHM2HTML, archmage.CHM2PDF):
+    elif options.mode in (Action.CHM2TXT, Action.CHM2HTML, Action.CHM2PDF):
         if not args:
             options.output = output_file(options.chmfile, options.mode)
         else:
@@ -177,15 +177,15 @@ def main():
 
     source = CHMFile(options.chmfile)
 
-    if options.mode == archmage.DUMPHTML:
+    if options.mode == Action.DUMPHTML:
         source.dump_html()
-    elif options.mode == archmage.CHM2TXT:
+    elif options.mode == Action.CHM2TXT:
         if os.path.exists(options.output):
             sys.exit('%s is already exists' % options.output)
         source.chm2text(open(options.output, 'w'))
-    elif options.mode in (archmage.CHM2HTML, archmage.CHM2PDF):
+    elif options.mode in (Action.CHM2HTML, Action.CHM2PDF):
         source.htmldoc(options.output, options.mode)
-    elif options.mode == archmage.EXTRACT:
+    elif options.mode == Action.EXTRACT:
         source.extract(options.output)
 
     source.close()

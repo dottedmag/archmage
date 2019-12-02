@@ -27,6 +27,7 @@ import shutil
 import errno
 import string
 import tempfile
+from enum import Enum, auto
 
 import archmage
 
@@ -41,6 +42,13 @@ except ImportError as msg:
 # External file converters
 from archmage.chmtotext import chmtotext
 from archmage.htmldoc import htmldoc
+
+class Action(Enum):
+    EXTRACT = auto()
+    DUMPHTML = auto()
+    CHM2TXT = auto()
+    CHM2HTML = auto()
+    CHM2PDF = auto()
 
 PARENT_RE = re.compile(r'(^|/|\\)\.\.(/|\\|$)')
 
@@ -274,7 +282,7 @@ class CHMFile:
             # to use this function you should have 'lynx' or 'elinks' installed
             chmtotext(input=CHMEntry(self, e).get(), cmd=self.chmtotext, output=output)
 
-    def htmldoc(self, output, format=archmage.CHM2HTML):
+    def htmldoc(self, output, format=Action.CHM2HTML):
         """CHM to other file formats converter using htmldoc"""
         # Extract CHM content into temporary directory
         output = output.replace(' ', '_')
@@ -282,7 +290,7 @@ class CHMFile:
         self.extract_entries(entries=self.html_files(), destdir=tempdir, correct=True)
         # List of temporary files
         files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files() ]
-        if format == archmage.CHM2HTML:
+        if format == Action.CHM2HTML:
             options = self.chmtohtml
             # change output from single html file to a directory with html file and images
             if self.image_files():
@@ -296,7 +304,7 @@ class CHMFile:
                     self.extract_entry(entry=key, output_file=value, destdir=dirname)
                 # Fix output file name
                 output = os.path.join(dirname, output)
-        elif format == archmage.CHM2PDF:
+        elif format == Action.CHM2PDF:
             options = self.chmtopdf
             if self.image_files():
                 # Extract all images
