@@ -21,9 +21,6 @@ archmage \- CHM(Compiled HTML) Decompressor.
 .B archmage
 .I chmfile directory
 .br
-.B archmage
-\-p port 
-.I chmfile
 .SH DESCRIPTION
 This manual page documents briefly the
 .B archmage
@@ -39,28 +36,10 @@ also known as Compiled HTML. arCHMage is based on python-chm binding to
 chmlib from GnoCHM project.
 .SH USAGE
 .PP
-There is three ways to use arCHMage package now: 
-.PP
-1) Extract .chm to directory (directory will be created):
+Extract .chm to directory (directory will be created):
 
 	archmage <chmfile> <directory>
 .PP
-2) Run as http-server, which will publish chm file contents on
-specified port:
-
-	archmage \-p <port> <chmfile>
-.PP
-3) TODO: document how to proxy Apache to running `archmage -p`.
-.PP
-Let's suppose, you have file sample.chm in DocumentRoot of your
-apache. After that tuning you can receive raw chm file, if you point
-your browser to
-
-	http://yourserver/sample.chm
-.PP
-or you can view chm file on the fly if you point your browser to
-
-	http://yourserver/sample.chm/ (note trailing slash)
 .SH SEE ALSO
 .PP
 arCHMage Home Page: http://archmage.sf.net
