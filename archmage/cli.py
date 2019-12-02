@@ -62,12 +62,19 @@ ERROR = 1
 
 program = sys.argv[0]
 
+# Miscellaneous auxiliary functions
+def message(code=OK, msg=''):
+    outfp = sys.stdout
+    if code == ERROR:
+        outfp = sys.stderr
+    if msg:
+        print(msg, file=outfp)
+
 def usage(code=OK, msg=''):
     """Show application usage and quit"""
-    archmage.message(code, __doc__ % globals())
-    archmage.message(code, msg)
+    message(code, __doc__ % globals())
+    message(code, msg)
     sys.exit(code)
-
 
 def parseargs():
     try:
@@ -87,7 +94,7 @@ def parseargs():
         if opt in ('-h', '--help'):
             usage()
         elif opt in ('-V', '--version'):
-            archmage.message(OK, archmage.__version__)
+            message(OK, archmage.__version__)
             sys.exit(OK)
         elif opt in ('-c', '--convert'):
             if options.mode is not None:

@@ -39,14 +39,6 @@ if os.path.exists(user_config):
 else:
     config = pkg_resources.resource_filename('archmage', 'arch.conf')
 
-# Miscellaneous auxiliary functions
-def message(code=OK, msg=''):
-    outfp = sys.stdout
-    if code == ERROR:
-        outfp = sys.stderr
-    if msg:
-        print(msg, file=outfp)
-
 def file2dir(filename):
     """Convert file filename.chm to filename_html directory"""
     dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
