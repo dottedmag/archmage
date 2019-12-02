@@ -328,11 +328,11 @@ class CHMEntry(object):
     def read(self):
         """Read CHM entry content"""
         result, ui = chmlib.chm_resolve_object(self.parent._chm, self.name.encode('utf-8'))
-        if (result != chmlib.CHM_RESOLVE_SUCCESS):
+        if result != chmlib.CHM_RESOLVE_SUCCESS:
             return None
 
         size, content = chmlib.chm_retrieve_object(self.parent._chm, ui, 0, ui.length)
-        if (size == 0):
+        if size == 0:
             return None
         return content
 
