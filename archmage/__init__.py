@@ -20,7 +20,7 @@
 # Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 __all__ = ['CHM']
-__version__ = '0.4.0'
+__version__ = '0.4.1-pre'
 
 import sys, os, pkg_resources
 
