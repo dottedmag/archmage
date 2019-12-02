@@ -31,10 +31,10 @@ setup(
         'sgmllib3k',
     ],
     entry_points={
-        'console_scripts': ['archmage = archmod.cli:main'],
+        'console_scripts': ['archmage = archmage.cli:main'],
     },
     package_data={
-        'archmod': ['*.conf', 'templates/*.html', 'templates/*.css',
+        'archmage': ['*.conf', 'templates/*.html', 'templates/*.css',
                     'templates/icons/*.gif'],
     }
 )

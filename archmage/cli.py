@@ -53,16 +53,16 @@ Where:
 import os, sys
 import getopt
 
-import archmod
-from archmod.CHM import CHMFile
+import archmage
+from archmage.CHM import CHMFile
 
 
 program = sys.argv[0]
 
-def usage(code=archmod.OK, msg=''):
+def usage(code=archmage.OK, msg=''):
     """Show application usage and quit"""
-    archmod.message(code, __doc__ % globals())
-    archmod.message(code, msg)
+    archmage.message(code, __doc__ % globals())
+    archmage.message(code, msg)
     sys.exit(code)
 
 
@@ -71,7 +71,7 @@ def parseargs():
         opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
                                 ['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
     except getopt.error as msg:
-        usage(archmod.ERROR, msg)
+        usage(archmage.ERROR, msg)
 
     class Options:
         mode = None        # EXTRACT or other
@@ -84,27 +84,27 @@ def parseargs():
         if opt in ('-h', '--help'):
             usage()
         elif opt in ('-V', '--version'):
-            archmod.message(archmod.OK, archmod.__version__)
-            sys.exit(archmod.OK)
+            archmage.message(archmage.OK, archmage.__version__)
+            sys.exit(archmage.OK)
         elif opt in ('-c', '--convert'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')
-            options.mode = archmod.output_format(str(arg))
+            options.mode = archmage.output_format(str(arg))
         elif opt in ('-x', '--extract'):
             if options.mode is not None:
                 sys.exit('-x and -c are mutually exclusive')
-            options.mode = archmod.EXTRACT
+            options.mode = archmage.EXTRACT
         elif opt in ('-d', '--dump'):
             if options.mode is not None:
                 sys.exit('-d should be used without any other options')
-            options.mode = archmod.DUMPHTML
+            options.mode = archmage.DUMPHTML
         else:
             assert False, (opt, arg)
 
     # Sanity checks
     if options.mode is None:
         # Set default option
-        options.mode = archmod.EXTRACT
+        options.mode = archmage.EXTRACT
 
     if not args:
         sys.exit('No CHM file was specified!')
@@ -113,23 +113,23 @@ def parseargs():
         options.chmfile = args.pop(0)
 
     # if CHM content should be extracted
-    if options.mode == archmod.EXTRACT:
+    if options.mode == archmage.EXTRACT:
         if not args:
-            options.output = archmod.file2dir(options.chmfile)
+            options.output = archmage.file2dir(options.chmfile)
         else:
             # get output directory from command line
             options.output = args.pop(0)
     # or converted into another file format
-    elif options.mode in (archmod.CHM2TXT, archmod.CHM2HTML, archmod.CHM2PDF):
+    elif options.mode in (archmage.CHM2TXT, archmage.CHM2HTML, archmage.CHM2PDF):
         if not args:
-            options.output = archmod.output_file(options.chmfile, options.mode)
+            options.output = archmage.output_file(options.chmfile, options.mode)
         else:
             # get output filename from command line
             options.output = args.pop(0)
 
     # Any other arguments are invalid
     if args:
-        sys.exit('Invalid arguments: ' + archmod.COMMASPACE.join(args))
+        sys.exit('Invalid arguments: ' + archmage.COMMASPACE.join(args))
 
     return options
 
@@ -144,15 +144,15 @@ def main():
 
     source = CHMFile(options.chmfile)
 
-    if options.mode == archmod.DUMPHTML:
+    if options.mode == archmage.DUMPHTML:
         source.dump_html()
-    elif options.mode == archmod.CHM2TXT:
+    elif options.mode == archmage.CHM2TXT:
         if os.path.exists(options.output):
             sys.exit('%s is already exists' % options.output)
         source.chm2text(open(options.output, 'w'))
-    elif options.mode in (archmod.CHM2HTML, archmod.CHM2PDF):
+    elif options.mode in (archmage.CHM2HTML, archmage.CHM2PDF):
         source.htmldoc(options.output, options.mode)
-    elif options.mode == archmod.EXTRACT:
+    elif options.mode == archmage.EXTRACT:
         source.extract(options.output)
 
     source.close()

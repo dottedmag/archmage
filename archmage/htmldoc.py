@@ -24,7 +24,7 @@ import os
 import string
 import tempfile
 import subprocess
-import archmod
+import archmage
 
 
 def htmldoc(input, cmd, options, toclevels, output):
@@ -44,9 +44,9 @@ def htmldoc(input, cmd, options, toclevels, output):
     if input:
         # Create a htmldoc file for batch processing
         f = tempfile.NamedTemporaryFile(delete=False)
-        f.write('#HTMLDOC 1.8.27' + archmod.LF)
-        f.write(options + archmod.LF)
-        f.write(string.join(input, archmod.LF))
+        f.write('#HTMLDOC 1.8.27' + archmage.LF)
+        f.write(options + archmage.LF)
+        f.write(string.join(input, archmage.LF))
         f.close()
         # Prepare command line to execute
         command = '%s --batch %s' % (cmd, f.name)

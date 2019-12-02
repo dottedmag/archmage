@@ -28,9 +28,9 @@ import errno
 import string
 import tempfile
 
-import archmod
+import archmage
 
-from archmod.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter#, HeadersCounter
+from archmage.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter#, HeadersCounter
 
 # import PyCHM bindings
 try:
@@ -39,8 +39,8 @@ except ImportError as msg:
     sys.exit('ImportError: %s\nPlease check README file for system requirements.' % msg)
 
 # External file converters
-from archmod.chmtotext import chmtotext
-from archmod.htmldoc import htmldoc
+from archmage.chmtotext import chmtotext
+from archmage.htmldoc import htmldoc
 
 PARENT_RE = re.compile(r'(^|/|\\)\.\.(/|\\|$)')
 
@@ -53,7 +53,7 @@ class CHMFile:
         self.sourcename = name
         self._chm = chmlib.chm_open(name)
         # Import variables from config file into namespace
-        exec(compile(open(archmod.config, "rb").read(), archmod.config, 'exec'), self.__dict__)
+        exec(compile(open(archmage.config, "rb").read(), archmage.config, 'exec'), self.__dict__)
 
         # build regexp from the list of auxiliary files
         self.aux_re = '|'.join([ re.escape(s) for s in self.auxes ])
@@ -274,7 +274,7 @@ class CHMFile:
             # to use this function you should have 'lynx' or 'elinks' installed
             chmtotext(input=CHMEntry(self, e).get(), cmd=self.chmtotext, output=output)
 
-    def htmldoc(self, output, format=archmod.CHM2HTML):
+    def htmldoc(self, output, format=archmage.CHM2HTML):
         """CHM to other file formats converter using htmldoc"""
         # Extract CHM content into temporary directory
         output = output.replace(' ', '_')
@@ -282,11 +282,11 @@ class CHMFile:
         self.extract_entries(entries=self.html_files(), destdir=tempdir, correct=True)
         # List of temporary files
         files = [ os.path.abspath(tempdir + file.lower()) for file in self.html_files() ]
-        if format == archmod.CHM2HTML:
+        if format == archmage.CHM2HTML:
             options = self.chmtohtml
             # change output from single html file to a directory with html file and images
             if self.image_files():
-                dirname = archmod.file2dir(output)
+                dirname = archmage.file2dir(output)
                 if os.path.exists(dirname):
                     sys.exit('%s is already exists' % dirname)
                 # Extract image files
@@ -296,7 +296,7 @@ class CHMFile:
                     self.extract_entry(entry=key, output_file=value, destdir=dirname)
                 # Fix output file name
                 output = os.path.join(dirname, output)
-        elif format == archmod.CHM2PDF:
+        elif format == archmage.CHM2PDF:
             options = self.chmtopdf
             if self.image_files():
                 # Extract all images

@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup, UnicodeDammit
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
-from archmod import COMMASPACE, LF, CR
+from archmage import COMMASPACE, LF, CR
 
 START_TAG = '['
 END_TAG = ']'

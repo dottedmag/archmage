@@ -46,7 +46,7 @@ user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
 if os.path.exists(user_config):
     config = user_config
 else:
-    config = pkg_resources.resource_filename('archmod', 'arch.conf')
+    config = pkg_resources.resource_filename('archmage', 'arch.conf')
 
 # Miscellaneous auxiliary functions
 def message(code=OK, msg=''):
