@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup, UnicodeDammit
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
-from archmage import COMMASPACE, LF, CR
+from archmage import LF, CR
 
 START_TAG = '['
 END_TAG = ']'
@@ -104,7 +104,7 @@ class SitemapParser(sgmllib.SGMLParser):
                 indent = ' ' * len(self.tagstack)
 
                 if self.parsed != LF + START_TAG:
-                    self.parsed += COMMASPACE
+                    self.parsed += ', '
 
                 self.parsed += LF + indent + START_TAG
 

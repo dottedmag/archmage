@@ -33,7 +33,6 @@ CHM2PDF = 6        # Convert CHM file into PDF Document
 #CHM2PS = 7        # Convert CHM file into PDF Document
 
 # Special characters
-COMMASPACE = ', '
 LF = '\n'
 CR = '\r'
 

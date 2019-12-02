@@ -132,7 +132,7 @@ def parseargs():
 
     # Any other arguments are invalid
     if args:
-        sys.exit('Invalid arguments: ' + archmage.COMMASPACE.join(args))
+        sys.exit('Invalid arguments: ' + ', '.join(args))
 
     return options
 
