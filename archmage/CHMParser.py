@@ -27,8 +27,6 @@ from bs4 import BeautifulSoup, UnicodeDammit
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
-from archmage import LF, CR
-
 START_TAG = '['
 END_TAG = ']'
 
@@ -53,7 +51,7 @@ class SitemapFile(object):
         if self.lines:
             p.feed(self.lines)
         # parsed text + last bracket
-        return (p.parsed + LF + END_TAG)
+        return (p.parsed + '\n' + END_TAG)
 
 
 class TagStack(list):
@@ -92,7 +90,7 @@ class SitemapParser(sgmllib.SGMLParser):
         if tag == 'ul' and not self.tagstack:
             self.tagstack.append(tag)
             # First bracket
-            self.parsed += LF + START_TAG
+            self.parsed += '\n' + START_TAG
 
         # if inside ul
         elif self.tagstack:
@@ -103,10 +101,10 @@ class SitemapParser(sgmllib.SGMLParser):
                     self.tagstack.pop('li')
                 indent = ' ' * len(self.tagstack)
 
-                if self.parsed != LF + START_TAG:
+                if self.parsed != '\n' + START_TAG:
                     self.parsed += ', '
 
-                self.parsed += LF + indent + START_TAG
+                self.parsed += '\n' + indent + START_TAG
 
             if tag == 'object':
                 for x, y in attrs:
@@ -120,7 +118,7 @@ class SitemapParser(sgmllib.SGMLParser):
                     elif x.lower() == 'value':
                         if self.param == 'name' and not len(self.name):
                             # XXX: Remove LF and/or CR signs from name
-                            self.name = y.replace(LF, '').replace(CR, '')
+                            self.name = y.replace('\n', '').replace('\r', '')
                             # XXX: Un-escaping double quotes :-)
                             self.name = self.name.replace('"', '\\"')
                         elif self.param == 'local':

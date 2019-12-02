@@ -32,10 +32,6 @@ CHM2HTML = 5    # Convert CHM file into Single HTML file
 CHM2PDF = 6        # Convert CHM file into PDF Document
 #CHM2PS = 7        # Convert CHM file into PDF Document
 
-# Special characters
-LF = '\n'
-CR = '\r'
-
 # what config file to use - local or a system wide?
 user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
 if os.path.exists(user_config):
