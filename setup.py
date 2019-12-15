@@ -30,6 +30,9 @@ setup(
         'beautifulsoup4',
         'sgmllib3k',
     ],
+    test_requires=[
+        'pytest',
+    ],
     entry_points={
         'console_scripts': ['archmage = archmage.cli:main'],
     },
