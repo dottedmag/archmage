@@ -1,3 +1,10 @@
+arCHMage 0.4.1
+==============
+
+Changes:
+
+* Added a testsuite with a single test to catch the most glaring problems.
+
 arCHMage 0.4
 ============
 Changes:
