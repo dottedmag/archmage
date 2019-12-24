@@ -15,7 +15,7 @@ classifiers=[
 
 setup(
     name='archmage',
-    version='0.4.1',
+    version='0.4.2-pre',
     description='CHM decompressor',
     maintainer='Mikhail Gusarov',
     maintainer_email='dottedmag@dottedmag.net',
