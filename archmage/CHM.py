@@ -82,16 +82,24 @@ class CHMFile:
         return self.cache['entries']
 
     def _entries(self):
-        def get_name(chmfile, ui, out):
-            path = ui.path.decode('utf-8')
-            if path != '/':
-                out.append(path)
-            return chmlib.CHM_ENUMERATOR_CONTINUE
+        if self._chm is None:
+            entries = []
+            for root, dirs, files in os.walk(self.sourcename):
+                for f in files:
+                    fn = '/'.join((root.lstrip(self.sourcename), f))
+                    entries.append(fn)
+            return entries
+        else:
+            def get_name(chmfile, ui, out):
+                path = ui.path.decode('utf-8')
+                if path != '/':
+                    out.append(path)
+                return chmlib.CHM_ENUMERATOR_CONTINUE
 
-        out = []
-        if chmlib.chm_enumerate(self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out) == 0:
-            sys.exit('UnknownError: CHMLIB or PyCHM bug?')
-        return out
+            out = []
+            if chmlib.chm_enumerate(self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out) == 0:
+                sys.exit('UnknownError: CHMLIB or PyCHM bug?')
+            return out
 
     # retrieves the list of HTML files contained into the CHM file, **in order**
     # (that's the important bit).
@@ -327,14 +335,17 @@ class CHMEntry(object):
 
     def read(self):
         """Read CHM entry content"""
-        result, ui = chmlib.chm_resolve_object(self.parent._chm, self.name.encode('utf-8'))
-        if result != chmlib.CHM_RESOLVE_SUCCESS:
-            return None
+        if self.parent._chm:
+            result, ui = chmlib.chm_resolve_object(self.parent._chm, self.name.encode('utf-8'))
+            if result != chmlib.CHM_RESOLVE_SUCCESS:
+                return None
 
-        size, content = chmlib.chm_retrieve_object(self.parent._chm, ui, 0, ui.length)
-        if size == 0:
-            return None
-        return content
+            size, content = chmlib.chm_retrieve_object(self.parent._chm, ui, 0, ui.length)
+            if size == 0:
+                return None
+            return content
+        else:
+            return open(self.parent.sourcename + self.name).read()
 
     def lower_links(self, text):
         """Links to lower case"""
