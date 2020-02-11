@@ -25,3 +25,14 @@ def test_extract():
             assert (t / f).exists()
 
         assert "Page 1" in (t / "page 1.html").read_text()
+
+
+def test_render_extracted():
+    with TempDir() as tmpdir:
+        t = tmpdir / "example_html"
+
+        sys.argv = ["extract", "tests/example", t]
+        archmage.cli.main()
+
+        for f in ["index.html", "page 1.html"]:
+            assert (t / f).exists()

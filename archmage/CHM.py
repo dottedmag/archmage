@@ -27,6 +27,7 @@ import shutil
 import errno
 import string
 import tempfile
+import os.path
 from enum import Enum, auto
 
 import archmage
@@ -58,14 +59,74 @@ class Action(Enum):
 PARENT_RE = re.compile(r"(^|/|\\)\.\.(/|\\|$)")
 
 
-class CHMFile:
+class FileSource:
+    def __init__(self, filename):
+        self._chm = chmlib.chm_open(filename)
+
+    def listdir(self):
+        def get_name(chmfile, ui, out):
+            path = ui.path.decode("utf-8")
+            if path != "/":
+                out.append(path)
+            return chmlib.CHM_ENUMERATOR_CONTINUE
+
+        out = []
+        if (
+            chmlib.chm_enumerate(
+                self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out
+            )
+            == 0
+        ):
+            sys.exit("UnknownError: CHMLIB or PyCHM bug?")
+        return out
+
+    def get(self, name):
+        result, ui = chmlib.chm_resolve_object(self._chm, name.encode("utf-8"))
+        if result != chmlib.CHM_RESOLVE_SUCCESS:
+            return None
+        size, content = chmlib.chm_retrieve_object(self._chm, ui, 0, ui.length)
+        if size == 0:
+            return None
+        return content
+
+    def close(self):
+        chmlib.chm_close(self._chm)
+
+
+class DirSource:
+    def __init__(self, dirname):
+        self.dirname = dirname
+
+    def listdir(self):
+        entries = []
+        for dir, _, files in os.walk(self.dirname):
+            for f in files:
+                entries.append(
+                    "/" + os.path.relpath(os.path.join(dir, f), self.dirname)
+                )
+        return entries
+
+    def get(self, filename):
+        with open(self.dirname + filename, "rb") as fh:
+            if fh is None:
+                return None
+            return fh.read()
+
+    def close(self):
+        pass
+
+
+class CHM:
     """Class that represent CHM content from directory"""
 
     def __init__(self, name):
         self.cache = {}
         # Name of source directory with CHM content
+        if os.path.isdir(name):
+            self.source = DirSource(name)
+        else:
+            self.source = FileSource(name)
         self.sourcename = name
-        self._chm = chmlib.chm_open(name)
         # Import variables from config file into namespace
         exec(
             compile(
@@ -85,7 +146,7 @@ class CHMFile:
         self.contents = SitemapFile(self.topicstree).parse()
 
     def close(self):
-        chmlib.chm_close(self._chm)
+        self.source.close()
 
     def entries(self):
         if "entries" not in self.cache:
@@ -93,21 +154,7 @@ class CHMFile:
         return self.cache["entries"]
 
     def _entries(self):
-        def get_name(chmfile, ui, out):
-            path = ui.path.decode("utf-8")
-            if path != "/":
-                out.append(path)
-            return chmlib.CHM_ENUMERATOR_CONTINUE
-
-        out = []
-        if (
-            chmlib.chm_enumerate(
-                self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out
-            )
-            == 0
-        ):
-            sys.exit("UnknownError: CHMLIB or PyCHM bug?")
-        return out
+        return self.source.listdir()
 
     # retrieves the list of HTML files contained into the CHM file, **in order**
     # (that's the important bit).
@@ -133,7 +180,11 @@ class CHMFile:
         out = []
         image_catcher = ImageCatcher()
         for file in self.html_files():
-            image_catcher.feed(CHMEntry(self, file).correct())
+            image_catcher.feed(
+                Entry(
+                    self.source, file, self.filename_case, self.restore_framing
+                ).correct()
+            )
             for image_url in image_catcher.imgurls:
                 if not out.count(image_url):
                     out.append(image_url)
@@ -166,7 +217,13 @@ class CHMFile:
     def _topics(self):
         for e in self.entries():
             if e.lower().endswith(".hhc"):
-                return CHMEntry(self, e, frontpage=self.frontpage()).get()
+                return Entry(
+                    self.source,
+                    e,
+                    self.filename_case,
+                    self.restore_framing,
+                    frontpage=self.frontpage(),
+                ).get()
 
     # use first page as deftopic. Note: without heading slash
     def deftopic(self):
@@ -267,11 +324,21 @@ class CHMFile:
             # write CHM entry content into the file, corrected or as is
             if correct:
                 open(os.path.join(destdir, fname), "wb").write(
-                    CHMEntry(self, entry).correct()
+                    Entry(
+                        self.source,
+                        entry,
+                        self.filename_case,
+                        self.restore_framing,
+                    ).correct()
                 )
             else:
                 open(os.path.join(destdir, fname), "wb").write(
-                    CHMEntry(self, entry).get()
+                    Entry(
+                        self.source,
+                        entry,
+                        self.filename_case,
+                        self.restore_framing,
+                    ).get()
                 )
 
     def extract_entries(self, entries=[], destdir=".", correct=False):
@@ -305,7 +372,12 @@ class CHMFile:
             # if entry is auxiliary file, than skip it
             if re.match(self.aux_re, e):
                 continue
-            print(CHMEntry(self, e).get(), file=output)
+            print(
+                Entry(
+                    self.source, e, self.filename_case, self.restore_framing
+                ).get(),
+                file=output,
+            )
 
     def chm2text(self, output=sys.stdout):
         """Convert CHM into Single Text file"""
@@ -315,7 +387,11 @@ class CHMFile:
                 continue
             # to use this function you should have 'lynx' or 'elinks' installed
             chmtotext(
-                input=CHMEntry(self, e).get(), cmd=self.chmtotext, output=output
+                input=Entry(
+                    self.source, e, self.filename_case, self.restore_framing
+                ).get(),
+                cmd=self.chmtotext,
+                output=output,
             )
 
     def htmldoc(self, output, format=Action.CHM2HTML):
@@ -361,31 +437,28 @@ class CHMFile:
         shutil.rmtree(path=tempdir)
 
 
-class CHMEntry(object):
+class Entry(object):
     """Class for CHM file entry"""
 
-    def __init__(self, parent, name, frontpage="index.html"):
-        # parent CHM file
-        self.parent = parent
+    def __init__(
+        self,
+        source,
+        name,
+        filename_case,
+        restore_framing,
+        frontpage="index.html",
+    ):
+        # Entry source
+        self.source = source
         # object inside CHM file
         self.name = name
+        self.filename_case = filename_case
+        self.restore_framing = restore_framing
         # frontpage name to substitute
         self.frontpage = os.path.basename(frontpage)
 
     def read(self):
-        """Read CHM entry content"""
-        result, ui = chmlib.chm_resolve_object(
-            self.parent._chm, self.name.encode("utf-8")
-        )
-        if result != chmlib.CHM_RESOLVE_SUCCESS:
-            return None
-
-        size, content = chmlib.chm_retrieve_object(
-            self.parent._chm, ui, 0, ui.length
-        )
-        if size == 0:
-            return None
-        return content
+        return self.source.get(self.name)
 
     def lower_links(self, text):
         """Links to lower case"""
@@ -416,7 +489,7 @@ if (window.name != "content")
         # If entry is a html page?
         if re.search("(?i)\\.html?$", self.name) and data is not None:
             # lower-casing links if needed
-            if self.parent.filename_case:
+            if self.filename_case:
                 data = self.lower_links(data)
 
             # Delete unwanted HTML elements.
@@ -443,10 +516,10 @@ if (window.name != "content")
         # If entry is a html page?
         if re.search("(?i)\\.html?$", self.name) and data is not None:
             # lower-casing links if needed
-            if self.parent.filename_case:
+            if self.filename_case:
                 data = self.lower_links(data)
             # restore framing if that option is set in config file
-            if self.parent.restore_framing:
+            if self.restore_framing:
                 data = self.add_restoreframing_js(self.name[1:], data)
         if data is not None:
             return data

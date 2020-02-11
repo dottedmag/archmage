@@ -54,7 +54,7 @@ import os, sys
 import getopt
 
 import archmage
-from archmage.CHM import CHMFile, Action
+from archmage.CHM import CHM, Action
 
 # Return codes
 OK = 0
@@ -180,12 +180,7 @@ def main():
     if not os.path.exists(options.chmfile):
         sys.exit("No such file: %s" % options.chmfile)
 
-    if os.path.isdir(options.chmfile):
-        sys.exit(
-            "A regular files is expected, got directory: %s" % options.chmfile
-        )
-
-    source = CHMFile(options.chmfile)
+    source = CHM(options.chmfile)
 
     if options.mode == Action.DUMPHTML:
         source.dump_html()
