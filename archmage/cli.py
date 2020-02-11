@@ -191,6 +191,6 @@ def main():
     elif options.mode in (Action.CHM2HTML, Action.CHM2PDF):
         source.htmldoc(options.output, options.mode)
     elif options.mode == Action.EXTRACT:
-        source.extract(options.output)
+        source.extract(str(options.output))
 
     source.close()
