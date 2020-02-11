@@ -1,3 +1,15 @@
+arCHMage 0.4.2
+==============
+
+Changes:
+
+* Add support for converting CHM files extracted to a filesystem. This
+  used to work in 0.3, but got dropped in 0.4 (#16)
+
+Bug fixes:
+
+* Gracefully handle missing files (#11)
+
 arCHMage 0.4.1
 ==============
 
