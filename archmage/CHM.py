@@ -28,7 +28,7 @@ import errno
 import string
 import tempfile
 import os.path
-from enum import Enum, auto
+from enum import Enum
 
 import archmage
 
@@ -49,11 +49,11 @@ from archmage.htmldoc import htmldoc
 
 
 class Action(Enum):
-    EXTRACT = auto()
-    DUMPHTML = auto()
-    CHM2TXT = auto()
-    CHM2HTML = auto()
-    CHM2PDF = auto()
+    EXTRACT = 1
+    DUMPHTML = 2
+    CHM2TXT = 3
+    CHM2HTML = 4
+    CHM2PDF = 5
 
 
 PARENT_RE = re.compile(r"(^|/|\\)\.\.(/|\\|$)")
