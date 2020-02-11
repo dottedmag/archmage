@@ -62,74 +62,82 @@ ERROR = 1
 
 program = sys.argv[0]
 
+
 # Miscellaneous auxiliary functions
-def message(code=OK, msg=''):
+def message(code=OK, msg=""):
     outfp = sys.stdout
     if code == ERROR:
         outfp = sys.stderr
     if msg:
         print(msg, file=outfp)
 
-def usage(code=OK, msg=''):
+
+def usage(code=OK, msg=""):
     """Show application usage and quit"""
     message(code, __doc__ % globals())
     message(code, msg)
     sys.exit(code)
 
+
 def output_format(mode):
-    if mode == 'text':
-        return CHM2TXT
-    elif mode == 'html':
-        return CHM2HTML
-    elif mode == 'pdf':
-        return CHM2PDF
+    if mode == "text":
+        return Action.CHM2TXT
+    elif mode == "html":
+        return Action.CHM2HTML
+    elif mode == "pdf":
+        return Action.CHM2PDF
     else:
-        sys.exit('Invalid output file format: %s' % mode)
+        sys.exit("Invalid output file format: %s" % mode)
+
 
 def output_file(filename, mode):
     """Convert filename.chm to filename.output"""
-    if mode == CHM2TXT:
-        file_ext = 'txt'
-    elif mode == CHM2HTML:
-        file_ext = 'html'
-    elif mode == CHM2PDF:
-        file_ext = 'pdf'
+    if mode == Action.CHM2TXT:
+        file_ext = "txt"
+    elif mode == Action.CHM2HTML:
+        file_ext = "html"
+    elif mode == Action.CHM2PDF:
+        file_ext = "pdf"
     else:
-        file_ext = 'output'
-    output_filename = filename.rsplit('.', 1)[0] + '.' + file_ext
+        file_ext = "output"
+    output_filename = filename.rsplit(".", 1)[0] + "." + file_ext
     return output_filename
+
 
 def parseargs():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'xc:dp:Vh',
-                                ['extract', 'convert=', 'dump', 'port=', 'version', 'help'])
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            "xc:dp:Vh",
+            ["extract", "convert=", "dump", "port=", "version", "help"],
+        )
     except getopt.error as msg:
         usage(ERROR, msg)
 
     class Options:
-        mode = None        # EXTRACT or other
-        chmfile = None     # CHM File to view/extract
-        output = None      # Output file or directory
+        mode = None  # EXTRACT or other
+        chmfile = None  # CHM File to view/extract
+        output = None  # Output file or directory
 
     options = Options()
 
     for opt, arg in opts:
-        if opt in ('-h', '--help'):
+        if opt in ("-h", "--help"):
             usage()
-        elif opt in ('-V', '--version'):
+        elif opt in ("-V", "--version"):
             message(OK, archmage.__version__)
             sys.exit(OK)
-        elif opt in ('-c', '--convert'):
+        elif opt in ("-c", "--convert"):
             if options.mode is not None:
-                sys.exit('-x and -c are mutually exclusive')
+                sys.exit("-x and -c are mutually exclusive")
             options.mode = output_format(str(arg))
-        elif opt in ('-x', '--extract'):
+        elif opt in ("-x", "--extract"):
             if options.mode is not None:
-                sys.exit('-x and -c are mutually exclusive')
+                sys.exit("-x and -c are mutually exclusive")
             options.mode = Action.EXTRACT
-        elif opt in ('-d', '--dump'):
+        elif opt in ("-d", "--dump"):
             if options.mode is not None:
-                sys.exit('-d should be used without any other options')
+                sys.exit("-d should be used without any other options")
             options.mode = Action.DUMPHTML
         else:
             assert False, (opt, arg)
@@ -140,7 +148,7 @@ def parseargs():
         options.mode = Action.EXTRACT
 
     if not args:
-        sys.exit('No CHM file was specified!')
+        sys.exit("No CHM file was specified!")
     else:
         # Get CHM file name from command line
         options.chmfile = args.pop(0)
@@ -162,7 +170,7 @@ def parseargs():
 
     # Any other arguments are invalid
     if args:
-        sys.exit('Invalid arguments: ' + ', '.join(args))
+        sys.exit("Invalid arguments: " + ", ".join(args))
 
     return options
 
@@ -170,10 +178,12 @@ def parseargs():
 def main():
     options = parseargs()
     if not os.path.exists(options.chmfile):
-        sys.exit('No such file: %s' % options.chmfile)
+        sys.exit("No such file: %s" % options.chmfile)
 
     if os.path.isdir(options.chmfile):
-        sys.exit('A regular files is expected, got directory: %s' % options.chmfile)
+        sys.exit(
+            "A regular files is expected, got directory: %s" % options.chmfile
+        )
 
     source = CHMFile(options.chmfile)
 
@@ -181,8 +191,8 @@ def main():
         source.dump_html()
     elif options.mode == Action.CHM2TXT:
         if os.path.exists(options.output):
-            sys.exit('%s is already exists' % options.output)
-        source.chm2text(open(options.output, 'w'))
+            sys.exit("%s is already exists" % options.output)
+        source.chm2text(open(options.output, "w"))
     elif options.mode in (Action.CHM2HTML, Action.CHM2PDF):
         source.htmldoc(options.output, options.mode)
     elif options.mode == Action.EXTRACT:

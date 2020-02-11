@@ -27,6 +27,7 @@ from subprocess import Popen, PIPE
 if sys.platform != "win32":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
+
 def chmtotext(input, cmd, output=sys.stdout):
     """CHM to Text converter"""
     proc = Popen(cmd, stdin=PIPE, stdout=PIPE, shell=True)

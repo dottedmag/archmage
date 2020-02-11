@@ -24,7 +24,6 @@ import os
 import string
 import tempfile
 import subprocess
-import archmage
 
 
 def htmldoc(input, cmd, options, toclevels, output):
@@ -37,19 +36,19 @@ def htmldoc(input, cmd, options, toclevels, output):
         output - output file (single html, ps, pdf and etc)
     """
     if toclevels:
-        toc = ('--toclevels %s' % (toclevels))
+        toc = "--toclevels %s" % (toclevels)
     else:
-        toc = ('--no-toc')
-    options = options % {'output' : output, 'toc' : toc}
+        toc = "--no-toc"
+    options = options % {"output": output, "toc": toc}
     if input:
         # Create a htmldoc file for batch processing
         f = tempfile.NamedTemporaryFile(delete=False)
-        f.write('#HTMLDOC 1.8.27\n')
-        f.write(options + '\n')
-        f.write(string.join(input, '\n'))
+        f.write("#HTMLDOC 1.8.27\n")
+        f.write(options + "\n")
+        f.write(string.join(input, "\n"))
         f.close()
         # Prepare command line to execute
-        command = '%s --batch %s' % (cmd, f.name)
+        command = "%s --batch %s" % (cmd, f.name)
         subprocess.call(command, shell=True)
         # Unlink temporary htmldoc file
         os.unlink(f.name)

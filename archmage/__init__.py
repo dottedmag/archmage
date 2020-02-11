@@ -19,19 +19,19 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 # Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-__all__ = ['CHM']
-__version__ = '0.4.2-pre'
+__version__ = "0.4.2-pre"
 
-import sys, os, pkg_resources
+import os, pkg_resources
 
 # what config file to use - local or a system wide?
-user_config = os.path.join(os.path.expanduser('~'), '.arch.conf')
+user_config = os.path.join(os.path.expanduser("~"), ".arch.conf")
 if os.path.exists(user_config):
     config = user_config
 else:
-    config = pkg_resources.resource_filename('archmage', 'arch.conf')
+    config = pkg_resources.resource_filename("archmage", "arch.conf")
+
 
 def file2dir(filename):
     """Convert file filename.chm to filename_html directory"""
-    dirname = filename.rsplit('.', 1)[0] + '_' + 'html'
+    dirname = filename.rsplit(".", 1)[0] + "_" + "html"
     return dirname
