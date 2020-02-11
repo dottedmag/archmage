@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 # Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-__version__ = "0.4.2"
+__version__ = "0.4.3-pre"
 
 import os, pkg_resources
 
