@@ -1,4 +1,4 @@
 include archmage/arch.conf
 recursive-include archmage/templates *.html *.css *.gif
 include AUTHORS COPYING NEWS README.md archmage.1
-recursive-include tests *.py *.chm
+recursive-include tests *.py *.chm *.html *.hhc
