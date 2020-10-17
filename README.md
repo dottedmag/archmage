@@ -40,7 +40,7 @@ Requirements
 
 arCHMage has the following dependencies:
 
-  * Python 3.5+
+  * Python 3.6+
   * PyCHM
   * BeautifulSoup4
 
