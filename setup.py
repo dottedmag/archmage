@@ -18,7 +18,7 @@ setup(
     name="archmage",
     version="0.4.2.1",
     description="CHM decompressor",
-    maintainer="Mikhail Gusarov",
+    maintainer="Misha Gusarov",
     maintainer_email="dottedmag@dottedmag.net",
     url="https://github.com/dottedmag/archmage",
     license="GPLv2+",
