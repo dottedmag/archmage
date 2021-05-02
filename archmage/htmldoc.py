@@ -21,7 +21,6 @@
 """Generic converter function"""
 
 import os
-import string
 import tempfile
 import subprocess
 
@@ -42,10 +41,10 @@ def htmldoc(input, cmd, options, toclevels, output):
     options = options % {"output": output, "toc": toc}
     if input:
         # Create a htmldoc file for batch processing
-        f = tempfile.NamedTemporaryFile(delete=False)
+        f = tempfile.NamedTemporaryFile(mode="w", delete=False)
         f.write("#HTMLDOC 1.8.27\n")
         f.write(options + "\n")
-        f.write(string.join(input, "\n"))
+        f.write(str.join(input, "\n"))
         f.close()
         # Prepare command line to execute
         command = "%s --batch %s" % (cmd, f.name)
