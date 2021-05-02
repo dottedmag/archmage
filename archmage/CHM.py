@@ -29,6 +29,7 @@ import string
 import tempfile
 import os.path
 from enum import Enum
+from typing import List, Union
 
 import archmage
 
@@ -36,7 +37,7 @@ from archmage.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter
 
 # import PyCHM bindings
 try:
-    from chm import chmlib
+    from chm import chmlib  # type: ignore
 except ImportError as msg:
     sys.exit(
         "ImportError: %s\nPlease check README file for system requirements."
@@ -70,7 +71,7 @@ class FileSource:
                 out.append(path)
             return chmlib.CHM_ENUMERATOR_CONTINUE
 
-        out = []
+        out: List[str] = []
         if (
             chmlib.chm_enumerate(
                 self._chm, chmlib.CHM_ENUMERATE_ALL, get_name, out
@@ -123,7 +124,7 @@ class CHM:
         self.cache = {}
         # Name of source directory with CHM content
         if os.path.isdir(name):
-            self.source = DirSource(name)
+            self.source: Union[DirSource, FileSource] = DirSource(name)
         else:
             self.source = FileSource(name)
         self.sourcename = name
@@ -177,7 +178,7 @@ class CHM:
         return self.cache["image_urls"]
 
     def _image_urls(self):
-        out = []
+        out: List[str] = []
         image_catcher = ImageCatcher()
         for file in self.html_files():
             image_catcher.feed(

@@ -21,9 +21,10 @@
 
 import re
 import mimetypes
-import sgmllib, urllib.request, urllib.error, urllib.parse
+import sgmllib  # type: ignore
+import urllib.request, urllib.error, urllib.parse
 
-from bs4 import BeautifulSoup, UnicodeDammit
+from bs4 import BeautifulSoup, UnicodeDammit  # type: ignore
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
