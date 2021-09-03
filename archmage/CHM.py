@@ -434,7 +434,7 @@ class CHM:
                     self.extract_entry(
                         entry=key, output_file=key.lower(), destdir=tempdir
                     )
-        htmldoc(files, self.htmldoc_exec, options, self.toclevels, output)
+        htmldoc(files, self.htmldoc_exec, options, self.toclevels(), output)
         # Remove temporary files
         shutil.rmtree(path=tempdir)
 
