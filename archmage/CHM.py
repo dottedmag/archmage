@@ -181,10 +181,11 @@ class CHM:
         out: List[str] = []
         image_catcher = ImageCatcher()
         for file in self.html_files():
+            # Use latin-1, as it will accept any byte sequences
             image_catcher.feed(
                 Entry(
                     self.source, file, self.filename_case, self.restore_framing
-                ).correct()
+                ).correct().decode("latin-1")
             )
             for image_url in image_catcher.imgurls:
                 if not out.count(image_url):
