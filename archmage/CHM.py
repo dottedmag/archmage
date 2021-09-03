@@ -275,7 +275,8 @@ class CHM:
 
     def _toclevels(self):
         counter = TOCCounter()
-        counter.feed(self.topicstree)
+        # Use latin-1, as it will accept any byte sequences
+        counter.feed(self.topicstree.decode("latin-1"))
         if counter.count > self.maxtoclvl:
             return self.maxtoclvl
         else:
