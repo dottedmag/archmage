@@ -495,21 +495,21 @@ if (window.name != "content")
                 data = self.lower_links(data)
 
             # Delete unwanted HTML elements.
-            data = re.sub("<div .*teamlib\\.gif.*\\/div>", "", data)
-            data = re.sub("<a href.*>\\[ Team LiB \\]<\\/a>", "", data)
+            data = re.sub(b"<div .*teamlib\\.gif.*\\/div>", b"", data)
+            data = re.sub(b"<a href.*>\\[ Team LiB \\]<\\/a>", b"", data)
             data = re.sub(
-                "<table.*larrow\\.gif.*rarrow\\.gif.*<\\/table>", "", data
+                b"<table.*larrow\\.gif.*rarrow\\.gif.*<\\/table>", b"", data
             )
-            data = re.sub("<a href.*next\\.gif[^>]*><\\/a>", "", data)
-            data = re.sub("<a href.*previous\\.gif[^>]*><\\/a>", "", data)
-            data = re.sub("<a href.*prev\\.gif[^>]*><\\/a>", "", data)
-            data = re.sub('"[^"]*previous\\.gif"', '""', data)
-            data = re.sub('"[^"]*prev\\.gif"', '""', data)
-            data = re.sub('"[^"]*next\\.gif"', '""', data)
+            data = re.sub(b"<a href.*next\\.gif[^>]*><\\/a>", b"", data)
+            data = re.sub(b"<a href.*previous\\.gif[^>]*><\\/a>", b"", data)
+            data = re.sub(b"<a href.*prev\\.gif[^>]*><\\/a>", b"", data)
+            data = re.sub(b'"[^"]*previous\\.gif"', b'""', data)
+            data = re.sub(b'"[^"]*prev\\.gif"', b'""', data)
+            data = re.sub(b'"[^"]*next\\.gif"', b'""', data)
         if data is not None:
             return data
         else:
-            return ""
+            return b""
 
     def get(self):
         """Get CHM entry content"""
@@ -526,4 +526,4 @@ if (window.name != "content")
         if data is not None:
             return data
         else:
-            return ""
+            return b""

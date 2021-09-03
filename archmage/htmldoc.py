@@ -41,10 +41,10 @@ def htmldoc(input, cmd, options, toclevels, output):
     options = options % {"output": output, "toc": toc}
     if input:
         # Create a htmldoc file for batch processing
-        f = tempfile.NamedTemporaryFile(mode="w", delete=False)
-        f.write("#HTMLDOC 1.8.27\n")
-        f.write(options + "\n")
-        f.write(str.join(input, "\n"))
+        f = tempfile.NamedTemporaryFile(mode="wb", delete=False)
+        f.write(b"#HTMLDOC 1.8.27\n")
+        f.write(options.encode("utf-8") + b"\n")
+        f.write(b'\n'.join(f.encode('utf-8') for f in input))
         f.close()
         # Prepare command line to execute
         command = "%s --batch %s" % (cmd, f.name)
