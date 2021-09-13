@@ -33,6 +33,8 @@ This feature requires `htmldoc(1)`, and `lynx(1)` or `elinks(1)` installed.
 Installation
 ============
 
+Archmage uses PyCHM that depends on (C library) CHMlib. After CHMlib is installed, do
+
     pip install archmage
 
 Requirements
