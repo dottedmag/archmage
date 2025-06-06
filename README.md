@@ -52,3 +52,10 @@ Optional dependencies:
     (Debian/Ubuntu: `htmldoc`)
   * Lynx or ELinks - converting to plain text
     (Debian/Ubuntu: `lynx`)
+
+Legal
+=====
+
+This is a hobbyist project.
+
+Please [reach us](mailto:ce@dottedmag.net) if you need help with CE mark.
