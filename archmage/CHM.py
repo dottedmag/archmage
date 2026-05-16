@@ -34,6 +34,7 @@ from typing import List, Union
 import archmage
 
 from archmage.CHMParser import SitemapFile, PageLister, ImageCatcher, TOCCounter
+from archmage.search_index import build_search_index
 
 # import PyCHM bindings
 try:
@@ -365,6 +366,8 @@ class CHM:
             self.extract_entries(entries=self.entries(), destdir=destdir)
             # process templates
             self.process_templates(destdir=destdir)
+            # build client-side search index over the extracted HTML
+            build_search_index(destdir)
         except OSError as error:
             if error.errno == errno.EEXIST:
                 sys.exit("%s is already exists" % destdir)
