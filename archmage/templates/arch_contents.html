@@ -2,9 +2,95 @@
  <head>
   <title>$title</title>
   <LINK rel="Stylesheet" type="text/css" href="arch_css.css">
+  <script src="search_index.js"></script>
+  <style>
+html, body {
+  height: 100%; margin: 0; padding: 0;
+}
+body {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+}
+#archmage-tree-pane {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 40px;
+  padding: 2px;
+}
+#archmage-divider {
+  flex: 0 0 6px;
+  background: linear-gradient(to bottom, #c4d3e0, #97b1c8);
+  border-top: 1px solid #6c8aa6;
+  border-bottom: 1px solid #6c8aa6;
+  cursor: row-resize;
+  user-select: none;
+}
+#archmage-divider:hover {
+  background: linear-gradient(to bottom, #a8c0d6, #7a9bb8);
+}
+#archmage-divider.dragging {
+  background: #6c8aa6;
+}
+#archmage-search-pane {
+  flex: 0 0 260px;
+  display: flex; flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+  min-height: 40px;
+}
+#archmage-search-header {
+  flex: 0 0 auto;
+  padding: 6px;
+  background: #eef2f6;
+  border-bottom: 1px solid #c8d3df;
+}
+#archmage-search-input {
+  width: 100%; box-sizing: border-box;
+  padding: 4px 6px; font-size: 13px;
+  border: 1px solid #888; border-radius: 3px;
+}
+#archmage-search-modes {
+  display: flex; gap: 8px;
+  padding: 5px 2px 0;
+  font-size: 11px; color: #444;
+}
+#archmage-search-modes label { cursor: pointer; }
+#archmage-search-meta {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  font-size: 10px; color: #777;
+  background: #f7f9fc;
+  border-bottom: 1px solid #e3e7ec;
+}
+#archmage-search-results {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: #f7f9fc;
+}
+.archmage-result {
+  display: block;
+  padding: 5px 6px;
+  border-bottom: 1px solid #e3e7ec;
+  text-decoration: none; color: inherit;
+  font-size: 12px; line-height: 1.35;
+  cursor: pointer;
+}
+.archmage-result:hover { background: #d9ecff; }
+.archmage-result.active { background: #bcdcff; }
+.archmage-result .ar-title { color: #1a4d8a; font-weight: bold; }
+.archmage-result .ar-path { color: #777; font-size: 10px; margin-top: 1px; }
+.archmage-result .ar-snippet { color: #333; font-size: 11px; margin-top: 2px; }
+.archmage-result mark { background: #ffea60; padding: 0 1px; }
+.archmage-empty {
+  padding: 10px;
+  color: #777; font-size: 12px;
+}
+  </style>
 </head>
 
-<body onload="setInterval('getLoc()', 500);">    
+<body onload="setInterval('getLoc()', 500);">
+<div id="archmage-tree-pane">
 <script>
 var lastDoc;
 var contents = $contents;
@@ -20,9 +106,9 @@ try{if(d.body.innerHTML.length<=0)dhtml=false}
 catch(e){dhtml=false;}
 var tree=[];
 
-get_element=d.all ? 
+get_element=d.all ?
      function(id){return d.all[id]}
-     : 
+     :
      function(id){return d.getElementById(id)}
 
 function get_img1(){
@@ -30,7 +116,7 @@ function get_img1(){
 }
 function get_img2(){
     n=this.cnt[2]
-    if(n<9){    
+    if(n<9){
 	n=(this.opened ? ( n%2 ? parseInt(n)+1 : n ) : ( n%2 ? n : parseInt(n)-1 ))
     }
     return 'icons/'+n+'.gif'
@@ -122,7 +208,7 @@ function draw_contents(cnt){
     tree.nodes=[];
     tree.sel=null;
     tree.ind=-1;
-    
+
     tree.select=function(i){
 	return tree.nodes[i].select();
     };
@@ -134,7 +220,7 @@ function draw_contents(cnt){
 	new node(tree,i)
     }
     tree.nind=0;
-    
+
     for(var i=0;i < tree.childs.length;i++){
 	d.write(tree.childs[i].init());
 	if(!dhtml)tree.childs[i].open();
@@ -166,6 +252,370 @@ if(doc != lastDoc){
         }
 }
 new draw_contents(contents);
+</script>
+</div>
+<div id="archmage-divider" title="Drag to resize"></div>
+<div id="archmage-search-pane">
+  <div id="archmage-search-header">
+    <input id="archmage-search-input" type="text" autocomplete="off"
+           placeholder="Search... (Esc to clear)">
+    <div id="archmage-search-modes">
+      <label><input type="radio" name="archmage-search-mode" value="titles" checked> Titles</label>
+      <label><input type="radio" name="archmage-search-mode" value="everything"> Everything</label>
+    </div>
+  </div>
+  <div id="archmage-search-meta"></div>
+  <div id="archmage-search-results"></div>
+</div>
+<script>
+(function () {
+  var input, results, meta, divider, searchPane, treePane;
+  var debounceTimer = null;
+  var titlesIndex = null, hrefToPath = null;
+  var lastActive = null;
+  var lastDocSeen = '';
+
+  function init() {
+    input = document.getElementById('archmage-search-input');
+    results = document.getElementById('archmage-search-results');
+    meta = document.getElementById('archmage-search-meta');
+    divider = document.getElementById('archmage-divider');
+    searchPane = document.getElementById('archmage-search-pane');
+    treePane = document.getElementById('archmage-tree-pane');
+    if (!input) return;
+
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { input.value = ''; runSearch(); input.blur(); }
+    });
+    var modes = document.getElementsByName('archmage-search-mode');
+    for (var i = 0; i < modes.length; i++) {
+      modes[i].addEventListener('change', runSearch);
+    }
+
+    results.addEventListener('click', onResultClick);
+    if (treePane) treePane.addEventListener('click', onTreeClick);
+    initDivider();
+    showEmptyState();
+  }
+
+  function showEmptyState() {
+    meta.textContent = '';
+    results.innerHTML =
+      '<div class="archmage-empty">Type to search. ' +
+      'Titles mode searches the index; Everything mode searches page contents too.</div>';
+  }
+
+  // ---------- divider drag ----------
+  function initDivider() {
+    var saved = 0;
+    try { saved = parseInt(localStorage.getItem('archmage-search-height'), 10); } catch (e) {}
+    if (saved && saved > 50) searchPane.style.flexBasis = saved + 'px';
+
+    var dragging = false;
+    divider.addEventListener('mousedown', function (e) {
+      dragging = true;
+      divider.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'row-resize';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var h = window.innerHeight - e.clientY;
+      var min = 60, max = window.innerHeight - 60;
+      if (h < min) h = min;
+      if (h > max) h = max;
+      searchPane.style.flexBasis = h + 'px';
+    });
+    document.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      divider.classList.remove('dragging');
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      try {
+        var h = parseInt(searchPane.style.flexBasis, 10);
+        if (h) localStorage.setItem('archmage-search-height', h);
+      } catch (e) {}
+    });
+  }
+
+  // ---------- search ----------
+  function onInput() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runSearch, 120);
+  }
+
+  function getMode() {
+    var modes = document.getElementsByName('archmage-search-mode');
+    for (var i = 0; i < modes.length; i++) {
+      if (modes[i].checked) return modes[i].value;
+    }
+    return 'titles';
+  }
+
+  function buildTitlesIndex() {
+    if (titlesIndex !== null) return titlesIndex;
+    titlesIndex = [];
+    hrefToPath = {};
+    if (typeof contents === 'undefined') return titlesIndex;
+    walk(contents, []);
+    return titlesIndex;
+  }
+
+  function walk(nodes, pathParts) {
+    for (var i = 0; i < nodes.length; i++) {
+      var item = nodes[i];
+      if (!item || typeof item !== 'object') continue;
+      var title = item[0], href = item[1];
+      if (href) {
+        titlesIndex.push({ title: title, href: href, path: pathParts.join(' > ') });
+        if (!hrefToPath[href]) hrefToPath[href] = pathParts.join(' > ');
+      }
+      if (item.length > 3) walk(item.slice(3), pathParts.concat([title]));
+    }
+  }
+
+  function escHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function highlight(text, terms) {
+    text = String(text == null ? '' : text);
+    if (!terms.length || !text) return escHTML(text);
+    var out = '', lower = text.toLowerCase(), i = 0;
+    while (i < text.length) {
+      var bestIdx = -1, bestLen = 0;
+      for (var t = 0; t < terms.length; t++) {
+        var idx = lower.indexOf(terms[t], i);
+        if (idx !== -1 && (bestIdx === -1 || idx < bestIdx)) {
+          bestIdx = idx; bestLen = terms[t].length;
+        }
+      }
+      if (bestIdx === -1) { out += escHTML(text.substring(i)); break; }
+      out += escHTML(text.substring(i, bestIdx));
+      out += '<mark>' + escHTML(text.substring(bestIdx, bestIdx + bestLen)) + '</mark>';
+      i = bestIdx + bestLen;
+    }
+    return out;
+  }
+
+  function snippet(text, terms, len) {
+    if (!text) return '';
+    var lower = text.toLowerCase(), pos = -1;
+    for (var t = 0; t < terms.length; t++) {
+      var i = lower.indexOf(terms[t]);
+      if (i !== -1 && (pos === -1 || i < pos)) pos = i;
+    }
+    if (pos === -1) {
+      return text.length > len ? text.substring(0, len) + '...' : text;
+    }
+    var start = Math.max(0, pos - 40);
+    var end = Math.min(text.length, start + len);
+    var s = text.substring(start, end);
+    if (start > 0) s = '...' + s;
+    if (end < text.length) s = s + '...';
+    return s;
+  }
+
+  function scoreOf(t, h, b, terms) {
+    var sc = 0;
+    for (var i = 0; i < terms.length; i++) {
+      var term = terms[i], matched = false;
+      if (t.indexOf(term) !== -1) { sc += 20; matched = true; }
+      if (h.indexOf(term) !== -1) { sc += 5; matched = true; }
+      if (b.indexOf(term) !== -1) { sc += 1; matched = true; }
+      if (!matched) return -1;
+    }
+    return sc;
+  }
+
+  function searchTitles(terms) {
+    var idx = buildTitlesIndex(), out = [];
+    for (var i = 0; i < idx.length; i++) {
+      var e = idx[i];
+      var sc = scoreOf(e.title.toLowerCase(), '', (e.path || '').toLowerCase(), terms);
+      if (sc >= 0) out.push({ entry: e, score: sc });
+    }
+    out.sort(function (a, b) { return b.score - a.score; });
+    return out;
+  }
+
+  function searchEverything(terms) {
+    buildTitlesIndex();
+    var idx = window.SEARCH_INDEX || [], out = [];
+    for (var i = 0; i < idx.length; i++) {
+      var doc = idx[i];
+      var sc = scoreOf(
+        (doc.title || '').toLowerCase(),
+        (doc.headings || '').toLowerCase(),
+        (doc.text || '').toLowerCase(),
+        terms
+      );
+      if (sc >= 0) {
+        out.push({
+          entry: {
+            title: doc.title,
+            href: doc.id,
+            path: (hrefToPath && hrefToPath[doc.id]) || '',
+            text: doc.text
+          },
+          score: sc
+        });
+      }
+    }
+    out.sort(function (a, b) { return b.score - a.score; });
+    return out;
+  }
+
+  function runSearch() {
+    var q = (input.value || '').trim();
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    lastActive = null;
+    if (!terms.length) { showEmptyState(); return; }
+    var mode = getMode();
+    var hasIndex = !!(window.SEARCH_INDEX && window.SEARCH_INDEX.length);
+    if (mode === 'everything' && !hasIndex) {
+      meta.textContent = '';
+      results.innerHTML =
+        '<div class="archmage-empty" style="color:#a33;">' +
+        'search_index.js not loaded. Re-extract the CHM to generate it.' +
+        '</div>';
+      return;
+    }
+    var matches = mode === 'everything' ? searchEverything(terms) : searchTitles(terms);
+    render(matches, terms, mode);
+  }
+
+  function render(matches, terms, mode) {
+    if (!matches.length) {
+      meta.textContent = '0 matches';
+      results.innerHTML = '<div class="archmage-empty">No matches.</div>';
+      return;
+    }
+    meta.textContent = matches.length + ' match' + (matches.length === 1 ? '' : 'es') +
+      ' (' + (mode === 'everything' ? 'Everything' : 'Titles') + ')';
+    var parts = [];
+    for (var i = 0; i < matches.length; i++) {
+      var e = matches[i].entry;
+      var titleHTML = highlight(e.title, terms);
+      var pathHTML = e.path
+        ? '<div class="ar-path">' + escHTML(e.path) + '</div>' : '';
+      var snippetHTML = '';
+      if (mode === 'everything' && e.text) {
+        snippetHTML = '<div class="ar-snippet">' +
+          highlight(snippet(e.text, terms, 140), terms) + '</div>';
+      }
+      parts.push(
+        '<a class="archmage-result" href="' + escHTML(e.href) + '" target="content">' +
+        '<div class="ar-title">' + titleHTML + '</div>' +
+        pathHTML + snippetHTML + '</a>'
+      );
+    }
+    results.innerHTML = parts.join('');
+    results.scrollTop = 0;
+  }
+
+  // ---------- click: navigate + expand tree to target ----------
+  function onResultClick(e) {
+    var a = e.target;
+    while (a && a !== results && !(a.classList && a.classList.contains('archmage-result'))) {
+      a = a.parentNode;
+    }
+    if (!a || a === results) return;
+    if (lastActive) lastActive.classList.remove('active');
+    a.classList.add('active');
+    lastActive = a;
+    var href = a.getAttribute('href');
+    updateTopURL(normHref(href));
+    setTimeout(function () { expandTo(href); }, 0);
+  }
+
+  function onTreeClick(e) {
+    var a = e.target;
+    while (a && a.tagName !== 'A') a = a.parentNode;
+    if (!a) return;
+    var hrefAttr = a.getAttribute('href');
+    if (!hrefAttr || hrefAttr.indexOf('javascript:') === 0) return;
+    if (a.getAttribute('target') !== 'content') return;
+    updateTopURL(normHref(hrefAttr));
+  }
+
+  function normHref(h) {
+    if (!h) return '';
+    return String(h).split('#')[0].split('?')[0];
+  }
+
+  function findNode(href) {
+    if (typeof tree === 'undefined' || !tree.nodes) return null;
+    var target = normHref(href);
+    for (var i = 0; i < tree.nodes.length; i++) {
+      var n = tree.nodes[i];
+      var h = n && n.cnt ? normHref(n.cnt[1]) : '';
+      if (h && (h === target || h.lastIndexOf(target) >= 0 || target.lastIndexOf(h) >= 0)) {
+        return n;
+      }
+    }
+    return null;
+  }
+
+  function expandTo(href) {
+    var node = findNode(href);
+    if (!node) return;
+    var chain = [];
+    var p = node.parent;
+    while (p && p !== tree) { chain.push(p); p = p.parent; }
+    for (var i = chain.length - 1; i >= 0; i--) {
+      if (!chain[i].opened) chain[i].open();
+    }
+    try { node.select(); } catch (e) {}
+    var el = document.getElementById('el' + node.nind);
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
+  }
+
+  // ---------- URL sync (top window <-> content frame) ----------
+  function updateTopURL(page) {
+    if (!page) return;
+    try {
+      var t = top;
+      var newSearch = '?page=' + encodeURIComponent(page);
+      if (t.location.search === newSearch) return;
+      t.history.replaceState({}, '', t.location.pathname + newSearch);
+    } catch (e) {}
+  }
+
+  function syncFromContent() {
+    if (typeof tree === 'undefined' || !tree.nodes) return;
+    var contentFrame;
+    try { contentFrame = parent.frames['content'] || parent.frames[1]; }
+    catch (e) { return; }
+    if (!contentFrame) return;
+    var doc;
+    try { doc = '' + contentFrame.location; } catch (e) { return; }
+    if (doc === lastDocSeen) return;
+    lastDocSeen = doc;
+    var parts = doc.split('/');
+    var page = parts[parts.length - 1];
+    var hash = page.indexOf('#');
+    if (hash > 0) page = page.substring(0, hash);
+    if (!page || page === 'arch_frameset.html' || page === 'about:blank') return;
+    expandTo(page);
+    updateTopURL(page);
+  }
+
+  // Override the template's getLoc (which only opens the immediate parent)
+  // so the body-onload setInterval('getLoc()', 500) drives our sync instead.
+  window.getLoc = syncFromContent;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
  </body>
 </html>
